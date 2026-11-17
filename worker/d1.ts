@@ -7,7 +7,7 @@ type Row = Record<string, unknown>
 const COLS: Record<Table, string[]> = {
   visits: ['id', 'date', 'start', 'duration', 'staffId', 'clientId', 'kind', 'memo', 'status', 'seriesId', 'occDate', 'templateId', 'createdAt', 'updatedAt'],
   series: ['id', 'clientId', 'staffId', 'start', 'duration', 'kind', 'memo', 'weekdays', 'interval', 'startDate', 'endDate', 'anchor', 'createdAt', 'updatedAt'],
-  clients: ['id', 'name', 'kana', 'defaultDuration', 'defaultKind', 'defaultStaffId', 'defaultStart', 'memo', 'active', 'useCount', 'lastUsedAt', 'updatedAt'],
+  clients: ['id', 'name', 'kana', 'defaultDuration', 'defaultKind', 'defaultStaffId', 'defaultStart', 'address', 'memo', 'active', 'useCount', 'lastUsedAt', 'updatedAt'],
   staff: ['id', 'name', 'mark', 'sort'],
   templates: ['id', 'weekday', 'start', 'duration', 'staffId', 'clientId', 'kind', 'memo', 'updatedAt'],
 }

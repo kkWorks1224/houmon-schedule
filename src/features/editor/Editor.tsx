@@ -1,3 +1,4 @@
+import { MapLinks } from '../../components/MapLinks'
 import { AnimatePresence, motion } from 'motion/react'
 import { AlertTriangle, ArrowLeft, Check, ChevronRight, Loader2, Repeat, Search, Sparkles, UserPlus, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -337,6 +338,12 @@ function EditorBody({ init }: { init: EditorInit }) {
                   </span>
                   {!series && <span className="shrink-0 text-[14px] font-semibold text-accent">変更</span>}
                 </button>
+                {client?.address?.trim() && (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <span className="min-w-0 flex-1 text-[13.5px] text-ink-2">{client.address}</span>
+                    <MapLinks address={client.address} name={client.name} size="sm" />
+                  </div>
+                )}
               </Field>
 
               {/* 日付・時刻 */}

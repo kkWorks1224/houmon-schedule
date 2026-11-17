@@ -7,6 +7,7 @@ import { STATUS_LABEL, type Occ } from '../../../shared/types'
 import { cx, Flick, haptic, KindTag, staffTone, StaffMark, StaffTag, toast } from '../../components/ui'
 import { errMessage } from '../../lib/repo'
 import { clientById, setOccStatus, staffById, useApp } from '../../store/app'
+import { RouteIcon } from '../../components/MapLinks'
 import { openEditor } from '../editor/state'
 import { moveOcc } from './move'
 
@@ -168,7 +169,9 @@ export function OccCard({ o, showStaff, index = 0 }: { o: Occ; showStaff?: boole
             </span>
             {o.memo && <span className="mt-1 block truncate text-[13px] text-ink-2">{o.memo}</span>}
           </span>
+          {!skipped && !done && clientById(o.clientId)?.address?.trim() && <span className="w-[62px] shrink-0" aria-hidden />}
         </button>
+        {!skipped && !done && <RouteIcon address={clientById(o.clientId)?.address ?? ''} name={name(o.clientId)} className="absolute top-1/2 right-3 -translate-y-1/2" />}
       </Flick>
       </div>
     </motion.li>

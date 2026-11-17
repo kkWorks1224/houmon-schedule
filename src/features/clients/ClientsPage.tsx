@@ -1,3 +1,4 @@
+import { MapLinks } from '../../components/MapLinks'
 import { Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { hhmm, hm, parseHm, todayJST } from '../../../shared/date'
@@ -47,6 +48,7 @@ export function ClientsPage() {
                       <KindTag kind={c.defaultKind} full />
                       <StaffTag staff={staffById(c.defaultStaffId)} />
                     </span>
+                    {c.address?.trim() && <span className="mt-0.5 block truncate text-[12.5px] text-ink-3">{c.address}</span>}
                   </span>
                 </button>
                 {c.active && (
@@ -125,6 +127,10 @@ function ClientSheet({ client, onClose }: { client: Partial<Client> | null; onCl
         <Field label="標準の訪問内容">
           <Segmented label="標準の訪問内容" value={v.defaultKind ?? 'nursing'} onChange={(k: Kind) => setV({ ...v, defaultKind: k })} options={(['nursing', 'rehab', 'other'] as Kind[]).map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
         </Field>
+        <Field label="住所（任意）" htmlFor="c-addr" hint="「地図」「経路」で Google マップを開くために使います。地図を開いたとき、住所が端末から Google に送られます。">
+          <input id="c-addr" value={v.address ?? ''} onChange={(e) => setV({ ...v, address: e.target.value })} maxLength={200} placeholder="例：山梨県甲府市丸の内1丁目" className={inputCls()} autoComplete="off" />
+        </Field>
+        <MapLinks address={v.address ?? ''} size="sm" className="-mt-2" />
         <Field label="メモ（訪問時の注意など。医療記録は入力しないでください）" htmlFor="c-memo">
           <input id="c-memo" value={v.memo ?? ''} onChange={(e) => setV({ ...v, memo: e.target.value })} maxLength={500} className={inputCls()} />
         </Field>

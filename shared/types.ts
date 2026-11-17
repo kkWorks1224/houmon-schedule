@@ -25,6 +25,8 @@ export interface Client {
   defaultStaffId: string
   /** 標準の開始時刻（分）。空き時間から追加したときは使わない */
   defaultStart: number | null
+  /** 住所（地図・経路を開くために使う。空でもよい） */
+  address: string
   memo: string
   active: boolean
   useCount: number

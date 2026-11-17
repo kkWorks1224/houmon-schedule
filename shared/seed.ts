@@ -9,6 +9,21 @@ export const STAFF: Staff[] = [
   { id: 'st_muneto', name: 'むねと', mark: 'む', sort: 3 },
 ]
 
+/** 架空の利用者なので、住所は町名までの地域（実在の個人宅ではない） */
+const ADDR: Record<string, string> = {
+  cl_aoki: '山梨県甲府市丸の内',
+  cl_ishi: '山梨県甲府市飯田',
+  cl_ueno: '山梨県甲府市朝日',
+  cl_eguchi: '山梨県甲府市富士見',
+  cl_oka: '山梨県甲府市北新',
+  cl_kato: '山梨県甲斐市竜王',
+  cl_kino: '山梨県甲府市相生',
+  cl_kubo: '山梨県中央市山之神',
+  cl_koma: '山梨県甲府市大里町',
+  cl_shimi: '山梨県昭和町西条',
+  cl_tamu: '山梨県甲府市住吉',
+}
+
 const C = (id: string, name: string, kana: string, dur: number, kind: Kind, staff: string, start: number | null, memo = '', uses = 0): Client => ({
   id,
   name,
@@ -17,6 +32,7 @@ const C = (id: string, name: string, kana: string, dur: number, kind: Kind, staf
   defaultKind: kind,
   defaultStaffId: staff,
   defaultStart: start,
+  address: ADDR[id] ?? '',
   memo,
   active: true,
   useCount: uses,

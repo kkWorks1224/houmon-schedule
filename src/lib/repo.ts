@@ -3,7 +3,7 @@
 // - ApiRepo：Cloudflare Workers + D1（Google ログイン・利用登録が必要）
 import { MemoryDataSource, type Tables } from '../../shared/memory'
 import { parseText, type Parsed } from '../../shared/parse'
-import { makeSeed } from '../../shared/seed'
+import { CLIENTS, makeSeed } from '../../shared/seed'
 import { Service } from '../../shared/service'
 import { AppError } from '../../shared/types'
 import { todayJST } from '../../shared/date'
@@ -36,6 +36,8 @@ export class LocalRepo implements Repo {
     try {
       const raw = localStorage.getItem(DEMO_KEY)
       if (raw) tables = JSON.parse(raw)
+      // 住所欄を追加する前に保存されたデモデータには、架空の地域名を補う
+      if (tables) for (const c of Object.values(tables.clients)) c.address ??= CLIENTS.find((x) => x.id === c.id)?.address ?? ''
     } catch {
       tables = null
     }

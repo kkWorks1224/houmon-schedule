@@ -6,6 +6,7 @@ import type { Client, Occ, Staff } from '../../../shared/types'
 import { Button, cx, IconButton, KindTag, Segmented, Skeleton, StaffMark, staffTone } from '../../components/ui'
 import { clientById, loadWeek, setDate, staffById, useApp } from '../../store/app'
 import { openEditor, useEditor } from '../editor/state'
+import { RouteIcon } from '../../components/MapLinks'
 import { moveOcc } from './move'
 import { weekDrag, OccCard, OccChip, RepeatBadge, StatusBadge, useClientName } from './occ'
 
@@ -336,9 +337,11 @@ function DaySummary({ date, occs, staff }: { date: string; occs: Occ[]; staff: S
             </span>
           </span>
           <StaffMark staff={staffById(next.staffId)} size={26} />
-          <ChevronRight size={18} className="shrink-0 text-ink-3" aria-hidden />
+          {!clientById(next.clientId)?.address?.trim() && <ChevronRight size={18} className="shrink-0 text-ink-3" aria-hidden />}
         </button>
-      ) : (
+      ) : null}
+      {next && clientById(next.clientId)?.address?.trim() ? <RouteIcon address={clientById(next.clientId)!.address} name={name(next.clientId)} /> : null}
+      {!next && (
         <p className="min-w-0 flex-1">
           {done === list.length ? (
             <span className="text-[15px] font-bold text-ok">すべて完了しました</span>

@@ -361,6 +361,7 @@ export class Service {
       defaultKind: KINDS.includes(c.defaultKind as Kind) ? (c.defaultKind as Kind) : 'nursing',
       defaultStaffId: c.defaultStaffId ?? staff[0].id,
       defaultStart: c.defaultStart ?? null,
+      address: (c.address ?? '').trim().slice(0, 200),
       memo: (c.memo ?? '').trim().slice(0, 500),
       active: c.active ?? true,
       useCount: cur?.useCount ?? 0,
