@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, type PanInfo } from 'motion/react'
-import { CalendarDays, ChevronLeft, ChevronRight, HardDrive, Plus, Search, X } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, HardDrive, Plus, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { addDays, eachDay, fmtDate, fmtShort, hm, mondayOf, nowMinutesJST, todayJST, WD, weekday } from '../../../shared/date'
 import type { Client, Occ, Staff } from '../../../shared/types'
@@ -35,6 +35,7 @@ export function Schedule() {
   const weekError = useApp((s) => s.weekError)
   const searchRef = useRef<HTMLInputElement>(null)
   const dateRef = useRef<HTMLInputElement>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const today = todayJST()
   const step = view === 'day' ? 1 : 7
   const dir = useRef(0)
@@ -72,62 +73,105 @@ export function Schedule() {
   const title = view === 'day' ? fmtDate(date) : `${Number(monday.slice(5, 7))}/${Number(monday.slice(8))}〜${sunday.slice(5, 7) !== monday.slice(5, 7) ? `${Number(sunday.slice(5, 7))}/` : ''}${Number(sunday.slice(8))}`
   const visibleStaff = staffFilter === 'all' ? staff : staff.filter((s) => s.id === staffFilter)
 
+  const openPicker = () => dateRef.current?.showPicker?.() ?? dateRef.current?.focus()
+  const staffFilterEl = (
+    <Segmented
+      size="sm"
+      label="担当者の絞り込み"
+      value={staffFilter}
+      onChange={(v) => useApp.setState({ staffFilter: v })}
+      options={[{ value: 'all', label: '全員' }, ...staff.map((s) => ({ value: s.id, aria: s.name, label: <><StaffMark staff={s} size={17} /><span className="truncate">{s.name}</span></> }))]}
+      className="[&_button]:flex-auto [&_button]:gap-1 [&_button]:px-1.5 [&_button]:text-[13px] lg:ml-auto lg:w-[440px] lg:[&_button]:px-3 lg:[&_button]:text-[13.5px]"
+    />
+  )
+  const viewEl = (cls: string) => <Segmented size="sm" label="表示" value={view} onChange={(v) => useApp.setState({ view: v })} options={[{ value: 'day', label: '日', aria: '日表示（D）' }, { value: 'week', label: '週', aria: '週表示（W）' }]} className={cls} />
+  const isToday = view === 'day' ? date === today : monday === mondayOf(today)
+
   return (
     <div>
+      <input ref={dateRef} type="date" aria-label="日付を選ぶ" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className="pointer-events-none fixed top-0 left-0 h-px w-px opacity-0" tabIndex={-1} />
       {/* ツールバー（ガラス）：スクロールしても上に残る */}
-      <header className="glass-flat sticky top-0 z-30 border-b border-line px-4 pt-[calc(env(safe-area-inset-top)+10px)] pb-3 lg:px-8 lg:pt-5">
-        <div className="flex items-center gap-2">
-          <div className="min-w-0 flex-1">
-            <h1 className="flex items-baseline gap-2 truncate text-[22px] leading-tight font-bold tracking-tight lg:text-[26px]">
-              <span className="truncate">{view === 'day' ? <><span className="lg:hidden">{fmtShort(date)}</span><span className="hidden lg:inline">{title}</span></> : title}</span>
+      <header className="glass-flat sticky top-0 z-30 border-b border-line px-4 pt-[calc(env(safe-area-inset-top)+6px)] pb-2 lg:px-8 lg:pt-5 lg:pb-3">
+        {/* スマホ：日付を大きく、操作は右にまとめる（前後の移動は下の日付帯をスワイプ） */}
+        <div className="lg:hidden">
+          {searchOpen || query ? (
+            <div className="flex h-12 items-center gap-2">
+              <SearchBox inputRef={searchRef} autoFocus />
+              <button type="button" className="press h-10 shrink-0 cursor-pointer px-1 text-[15px] font-semibold text-accent" onClick={() => (useApp.setState({ query: '' }), setSearchOpen(false))}>
+                閉じる
+              </button>
+            </div>
+          ) : (
+            <div className="flex h-12 items-center gap-1">
+              <h1 className="min-w-0 shrink">
+              <button type="button" onClick={openPicker} className="press flex min-w-0 cursor-pointer items-baseline gap-1.5 rounded-xl pr-1 text-left" aria-label={`${view === 'day' ? fmtDate(date) : title}。押すと日付を選べます`}>
+                {view === 'day' ? (
+                  <>
+                    <span className="num text-[28px] leading-none font-bold tracking-tight whitespace-nowrap">
+                      {Number(date.slice(5, 7))}/{Number(date.slice(8))}
+                    </span>
+                    <span className={cx('text-[16px] font-bold whitespace-nowrap', weekday(date) === 0 ? 'text-bad' : weekday(date) === 6 ? 'text-accent' : 'text-ink-2')}>{WD[weekday(date)]}曜</span>
+                  </>
+                ) : (
+                  <span className="num truncate text-[24px] leading-none font-bold tracking-tight">{title}</span>
+                )}
+                <ChevronDown size={18} className="shrink-0 self-center text-ink-3" aria-hidden />
+              </button>
+              </h1>
+              <AnimatePresence initial={false} mode="popLayout">
+                {isToday ? (
+                  view === 'day' && (
+                    <motion.span key="t" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-[12px] font-bold text-white">
+                      今日
+                    </motion.span>
+                  )
+                ) : (
+                  <motion.button key="b" type="button" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} onClick={goToday} className="press flex h-8 shrink-0 cursor-pointer items-center rounded-full bg-accent-soft px-2 text-[13px] font-bold text-accent-ink" aria-label="今日へ戻る">
+                    {date > today ? <ChevronLeft size={15} aria-hidden /> : null}
+                    今日
+                    {date < today ? <ChevronRight size={15} aria-hidden /> : null}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+              <div className="ml-auto flex shrink-0 items-center gap-1">
+                <IconButton label="利用者名で検索" onClick={() => setSearchOpen(true)} className="h-10 w-9">
+                  <Search size={20} />
+                </IconButton>
+                {viewEl('w-[80px] shrink-0')}
+              </div>
+            </div>
+          )}
+          {!query && <DateStrip date={date} today={today} onPick={(d) => { dir.current = d > date ? 1 : -1; setDate(d) }} />}
+          <div className="mt-1.5">{staffFilterEl}</div>
+        </div>
+
+        {/* PC */}
+        <div className="hidden lg:block">
+          <div className="flex items-center gap-2">
+            <h1 className="flex min-w-0 flex-1 items-baseline gap-2 truncate text-[26px] leading-tight font-bold tracking-tight">
+              <span className="truncate">{title}</span>
               {view === 'day' && date === today && <span className="rounded-full bg-accent px-2 py-0.5 text-[12px] font-bold text-white">今日</span>}
             </h1>
-            {isDemo && (
-              <p className="mt-0.5 flex items-center gap-1 text-[12px] text-ink-3 lg:hidden">
-                <HardDrive size={12} aria-hidden />
-                デモ：この端末にだけ保存（同期しません）
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            <IconButton label={view === 'day' ? '前の日（←）' : '前の週（←）'} onClick={() => move(-step)}>
-              <ChevronLeft size={22} />
-            </IconButton>
-            <Button variant="secondary" size="sm" onClick={goToday} disabled={view === 'day' ? date === today : monday === mondayOf(today)} title="今日（T）">
-              今日
-            </Button>
-            <IconButton label={view === 'day' ? '次の日（→）' : '次の週（→）'} onClick={() => move(step)}>
-              <ChevronRight size={22} />
-            </IconButton>
-            <span className="relative">
-              <IconButton label="日付を選ぶ" onClick={() => dateRef.current?.showPicker?.() ?? dateRef.current?.focus()}>
+            <div className="flex items-center gap-1">
+              <IconButton label={view === 'day' ? '前の日（←）' : '前の週（←）'} onClick={() => move(-step)}>
+                <ChevronLeft size={22} />
+              </IconButton>
+              <Button variant="secondary" size="sm" onClick={goToday} disabled={isToday} title="今日（T）">
+                今日
+              </Button>
+              <IconButton label={view === 'day' ? '次の日（→）' : '次の週（→）'} onClick={() => move(step)}>
+                <ChevronRight size={22} />
+              </IconButton>
+              <IconButton label="日付を選ぶ" onClick={openPicker}>
                 <CalendarDays size={20} />
               </IconButton>
-              <input
-                ref={dateRef}
-                type="date"
-                aria-label="日付を選ぶ"
-                value={date}
-                onChange={(e) => e.target.value && setDate(e.target.value)}
-                className="pointer-events-none absolute inset-0 opacity-0"
-                tabIndex={-1}
-              />
-            </span>
+            </div>
           </div>
-        </div>
-        <div className="mt-3 flex flex-col gap-2 lg:flex-row lg:items-center">
-          <div className="flex gap-2">
-            <Segmented size="sm" label="表示" value={view} onChange={(v) => useApp.setState({ view: v })} options={[{ value: 'day', label: '日', aria: '日表示（D）' }, { value: 'week', label: '週', aria: '週表示（W）' }]} className="w-[104px] shrink-0" />
+          <div className="mt-3 flex items-center gap-2">
+            {viewEl('w-[104px] shrink-0')}
             <SearchBox inputRef={searchRef} />
+            {staffFilterEl}
           </div>
-          <Segmented
-            size="sm"
-            label="担当者の絞り込み"
-            value={staffFilter}
-            onChange={(v) => useApp.setState({ staffFilter: v })}
-            options={[{ value: 'all', label: '全員' }, ...staff.map((s) => ({ value: s.id, aria: s.name, label: <><StaffMark staff={s} size={17} /><span className="truncate">{s.name}</span></> }))]}
-            className="[&_button]:flex-auto [&_button]:gap-1 [&_button]:px-1.5 [&_button]:text-[13px] lg:ml-auto lg:w-[440px] lg:[&_button]:px-3 lg:[&_button]:text-[13.5px]"
-          />
         </div>
       </header>
 
@@ -144,7 +188,12 @@ export function Schedule() {
         <SearchResults q={query.trim()} />
       ) : (
         <>
-          <DateStrip date={date} today={today} onPick={(d) => { dir.current = d > date ? 1 : -1; setDate(d) }} />
+          {isDemo && (
+            <p className="mx-4 mt-2.5 flex items-center gap-1 text-[12px] text-ink-3 lg:hidden">
+              <HardDrive size={12} aria-hidden />
+              デモ：この端末にだけ保存（同期しません）
+            </p>
+          )}
           <AnimatePresence mode="popLayout" initial={false} custom={dir.current}>
             <motion.div
               key={view === 'day' ? date : monday}
@@ -164,13 +213,14 @@ export function Schedule() {
   )
 }
 
-function SearchBox({ inputRef }: { inputRef: React.RefObject<HTMLInputElement | null> }) {
+function SearchBox({ inputRef, autoFocus }: { inputRef: React.RefObject<HTMLInputElement | null>; autoFocus?: boolean }) {
   const query = useApp((s) => s.query)
   return (
-    <label className="relative flex h-8 min-w-0 flex-1 items-center rounded-full bg-black/[0.055] lg:w-72 lg:flex-none">
+    <label className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-black/[0.055] lg:h-8 lg:w-72 lg:flex-none">
       <Search size={16} className="pointer-events-none absolute left-3 text-ink-3" aria-hidden />
       <input
         ref={inputRef}
+        autoFocus={autoFocus}
         type="search"
         value={query}
         onChange={(e) => useApp.setState({ query: e.target.value })}
@@ -202,13 +252,13 @@ function DateStrip({ date, today, onPick }: { date: string; today: string; onPic
     if (Math.abs(i.offset.x) > 60 || Math.abs(i.velocity.x) > 500) onPick(addDays(date, i.offset.x < 0 ? 7 : -7))
   }
   return (
-    <motion.div className="px-3 pt-3 lg:hidden" drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.18} dragMomentum={false} onDragEnd={onEnd} style={{ touchAction: 'pan-y' }}>
+    <motion.div className="-mx-1 pt-1" drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.18} dragMomentum={false} onDragEnd={onEnd} style={{ touchAction: 'pan-y' }}>
       <div className="grid grid-cols-7 gap-1" role="group" aria-label="日付">
         {[...eachDay(monday, addDays(monday, 6))].map((d) => {
           const on = d === date
           const wd = weekday(d)
           return (
-            <button key={d} type="button" onClick={() => onPick(d)} aria-pressed={on} aria-label={`${fmtDate(d)} ${counts[d] ?? 0}件`} className={cx('press relative flex h-[58px] cursor-pointer flex-col items-center justify-center rounded-2xl', on ? 'text-white' : 'text-ink')}>
+            <button key={d} type="button" onClick={() => onPick(d)} aria-pressed={on} aria-label={`${fmtDate(d)} ${counts[d] ?? 0}件`} className={cx('press relative flex h-[54px] cursor-pointer flex-col items-center justify-center rounded-2xl', on ? 'text-white' : 'text-ink')}>
               {on && <motion.span layoutId="strip-on" className="absolute inset-0 rounded-2xl bg-accent shadow-[0_4px_14px_rgb(10_108_224/0.35)]" transition={{ type: 'spring', duration: 0.38, bounce: 0.18 }} />}
               <span className={cx('relative text-[11.5px] font-semibold', !on && (wd === 0 ? 'text-bad' : wd === 6 ? 'text-accent' : 'text-ink-3'))}>{WD[wd]}</span>
               <span className={cx('num relative text-[18px] leading-6 font-bold', !on && d === today && 'text-accent')}>{Number(d.slice(8))}</span>
@@ -239,6 +289,7 @@ function DayView({ date, staff }: { date: string; staff: Staff[] }) {
   return (
     <>
       <div className="lg:hidden">
+        <DaySummary date={date} occs={day} staff={staff} />
         <QuickAdd date={date} occs={day} />
         <DayList date={date} occs={day} staff={staff} />
       </div>
@@ -247,6 +298,60 @@ function DayView({ date, staff }: { date: string; staff: Staff[] }) {
         <DayGrid date={date} occs={day} staff={staff} />
       </div>
     </>
+  )
+}
+
+/** スマホ：その日の進み具合と次の訪問（押すとその予定を開く） */
+function DaySummary({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staff[] }) {
+  const name = useClientName()
+  const list = occs.filter((o) => o.status !== 'skipped' && staff.some((s) => s.id === o.staffId)).sort((a, b) => a.start - b.start)
+  if (!list.length) return null
+  const done = list.filter((o) => o.status === 'done').length
+  const isToday = date === todayJST()
+  const now = nowMinutesJST()
+  const next = list.find((o) => o.status === 'scheduled' && (!isToday || o.end > now))
+  const r = 19
+  const c = 2 * Math.PI * r
+  const p = done / list.length
+  return (
+    <div className="mx-4 mt-3 flex items-center gap-3.5 rounded-[20px] bg-white/80 p-3 pr-2 shadow-[var(--shadow-card)] ring-1 ring-line">
+      <div className="relative h-[52px] w-[52px] shrink-0" role="img" aria-label={`${list.length}件中${done}件完了`}>
+        <svg viewBox="0 0 48 48" className="h-full w-full -rotate-90">
+          <circle cx="24" cy="24" r={r} fill="none" stroke="var(--color-sunken)" strokeWidth="5" />
+          <motion.circle cx="24" cy="24" r={r} fill="none" stroke="var(--color-ok)" strokeWidth="5" strokeLinecap="round" strokeDasharray={c} initial={false} animate={{ strokeDashoffset: c * (1 - p) }} transition={{ type: 'spring', duration: 0.7, bounce: 0.1 }} />
+        </svg>
+        <span className="num absolute inset-0 flex items-center justify-center text-[14px] font-bold">
+          {done}
+          <span className="text-[11px] text-ink-3">/{list.length}</span>
+        </span>
+      </div>
+      {next ? (
+        <button type="button" onClick={() => openEditor({ mode: 'edit', occ: next })} className="press flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-xl py-1 text-left">
+          <span className="min-w-0 flex-1">
+            <span className="block text-[12px] font-semibold text-ink-3">{isToday ? '次の訪問' : 'この日の最初の訪問'}</span>
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span className="num text-[17px] font-bold">{hm(next.start)}</span>
+              <span className="truncate text-[16px] font-bold">{name(next.clientId)}さん</span>
+            </span>
+          </span>
+          <StaffMark staff={staffById(next.staffId)} size={26} />
+          <ChevronRight size={18} className="shrink-0 text-ink-3" aria-hidden />
+        </button>
+      ) : (
+        <p className="min-w-0 flex-1">
+          {done === list.length ? (
+            <span className="text-[15px] font-bold text-ok">すべて完了しました</span>
+          ) : (
+            <>
+              <span className="block text-[15px] font-bold">
+                未完了 <span className="num">{list.length - done}</span>件
+              </span>
+              <span className="block text-[12.5px] text-ink-3">予定を右にフリックすると完了にできます</span>
+            </>
+          )}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -263,12 +368,12 @@ function QuickAdd({ date, occs }: { date: string; occs: Occ[] }) {
   return (
     <div className="px-4 pt-3 lg:px-8">
       <p className="mb-1.5 text-[12.5px] font-semibold text-ink-3" id="quick-label">
-        すぐ追加（最近・よく使う利用者）
+        すぐ追加
       </p>
       <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0" role="group" aria-labelledby="quick-label">
         {list.map((c) => (
-          <button key={c.id} type="button" onClick={() => pick(c)} className="press hover-lift flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white pr-3.5 pl-1.5 text-[14.5px] font-semibold ring-1 ring-line">
-            <StaffMark staff={staffById(filter === 'all' ? c.defaultStaffId : filter)} size={26} />
+          <button key={c.id} type="button" onClick={() => pick(c)} className="press hover-lift flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white pr-3 pl-1 text-[14px] font-semibold shadow-[0_1px_2px_rgb(15_23_42/0.05)] ring-1 ring-line">
+            <StaffMark staff={staffById(filter === 'all' ? c.defaultStaffId : filter)} size={27} />
             {c.name.split(/\s/)[0]}さん
             <Plus size={15} className="text-ink-3" aria-hidden />
           </button>
@@ -312,8 +417,10 @@ function DayList({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
           <section key={s.id} aria-label={`${s.name}の予定`}>
             {all && (
               <h2 className="mb-2 flex items-center gap-2 px-1 text-[15px] font-bold">
-                <StaffMark staff={s} size={24} />
-                {s.name}
+                <span className={cx('flex items-center gap-1.5 rounded-full py-1 pr-3 pl-1', staffTone(s).soft, staffTone(s).fg)}>
+                  <StaffMark staff={s} size={24} />
+                  {s.name}
+                </span>
                 <span className="num text-[13px] font-semibold text-ink-3">{active}件</span>
               </h2>
             )}
@@ -331,21 +438,25 @@ function DayList({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
   )
 }
 
+const fmtLen = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}時間${m % 60 ? `${m % 60}分` : ''}` : `${m}分`)
+
 function GapRow({ date, staff, start, end }: { date: string; staff: Staff; start: number; end: number }) {
   return (
     <motion.li layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="list-none">
       <button
         type="button"
         onClick={() => openEditor({ mode: 'new', date, start, staffId: staff.id })}
-        className="press hover-lift flex min-h-[48px] w-full cursor-pointer items-center gap-3 rounded-[16px] border-[1.5px] border-dashed border-line-strong px-3 text-left text-[14px] text-ink-3"
+        className="press hover-lift flex min-h-[44px] w-full cursor-pointer items-center gap-3 rounded-[14px] border-[1.5px] border-dashed border-line-strong pr-2 pl-3 text-left text-[13.5px] text-ink-3"
         aria-label={`${staff.name} ${hm(start)}から${hm(end)}が空いています。ここに予定を追加`}
       >
-        <span className="num w-[54px] shrink-0 pr-2 text-right font-semibold">{hm(start)}</span>
+        <span className="num w-[62px] shrink-0 pr-2.5 text-right font-semibold">{hm(start)}</span>
         <span className="flex-1">
-          空き <span className="num">{hm(start)}–{hm(end)}</span>
+          空き <span className="num">〜{hm(end)}</span>
+          <span className="num ml-1.5 text-[12px] opacity-80">{fmtLen(end - start)}</span>
         </span>
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-accent">
-          <Plus size={18} strokeWidth={2.5} />
+        <span className="flex h-7 items-center gap-0.5 rounded-full bg-accent-soft pr-2.5 pl-1.5 text-[12.5px] font-bold text-accent">
+          <Plus size={15} strokeWidth={2.6} />
+          追加
         </span>
       </button>
     </motion.li>

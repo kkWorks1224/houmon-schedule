@@ -152,19 +152,20 @@ export function AppSkeleton() {
           <Skeleton key={i} className="h-10 w-full" />
         ))}
       </aside>
-      <div className="w-full px-4 pt-[calc(env(safe-area-inset-top)+14px)] lg:px-8 lg:pt-6">
-        <div className="mb-4 flex items-center justify-between">
-          <Skeleton className="h-8 w-44" />
-          <Skeleton className="h-9 w-24 rounded-full" />
+      <div className="w-full px-4 pt-[calc(env(safe-area-inset-top)+12px)] lg:px-8 lg:pt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-9 w-28 rounded-full" />
         </div>
-        <Skeleton className="mb-3 h-10 w-full rounded-full lg:w-96" />
-        <div className="mb-4 grid grid-cols-7 gap-1.5 lg:hidden">
+        <div className="mb-2 grid grid-cols-7 gap-1.5 lg:hidden">
           {Array.from({ length: 7 }, (_, i) => (
-            <Skeleton key={i} className="h-14 rounded-2xl" />
+            <Skeleton key={i} className="h-[54px] rounded-2xl" />
           ))}
         </div>
+        <Skeleton className="mb-4 h-9 w-full rounded-full lg:w-96" />
         <div className="flex flex-col gap-2.5 lg:hidden">
-          {Array.from({ length: 6 }, (_, i) => (
+          <Skeleton className="mb-2 h-[76px] rounded-[20px]" />
+          {Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="h-[76px] rounded-[18px]" />
           ))}
         </div>

@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import { Check, CheckCircle2, Moon, PencilLine, Repeat, RotateCcw } from 'lucide-react'
 import { hm } from '../../../shared/date'
 import { STATUS_LABEL, type Occ } from '../../../shared/types'
-import { cx, Flick, KindTag, StaffMark, StaffTag, toast } from '../../components/ui'
+import { cx, Flick, KindTag, staffTone, StaffMark, StaffTag, toast } from '../../components/ui'
 import { errMessage } from '../../lib/repo'
 import { clientById, setOccStatus, staffById, useApp } from '../../store/app'
 import { openEditor } from '../editor/state'
@@ -63,11 +63,11 @@ export function OccCard({ o, showStaff, index = 0 }: { o: Occ; showStaff?: boole
         <button
           type="button"
           onClick={() => openEditor({ mode: 'edit', occ: o })}
-          className={cx('press flex w-full cursor-pointer items-stretch gap-3 rounded-[18px] bg-white p-3 pr-3.5 text-left shadow-[0_1px_2px_rgb(15_23_42/0.05)] ring-1 ring-line', skipped && 'skipped-stripes bg-[#fafafa]')}
+          className={cx('press relative flex w-full cursor-pointer items-stretch gap-3 overflow-hidden rounded-[18px] bg-white p-3 pr-3.5 pl-4 text-left shadow-[0_1px_2px_rgb(15_23_42/0.05)] ring-1 ring-line before:absolute before:inset-y-2.5 before:left-[5px] before:w-[4px] before:rounded-full', skipped ? 'skipped-stripes bg-[#fafafa] before:bg-line-strong' : staffTone(staff).bar)}
           aria-label={`${hm(o.start)}から${hm(o.end)} ${name(o.clientId)}さん ${staff?.name ?? ''} ${STATUS_LABEL[o.status]}。押すと編集`}
         >
-          <span className={cx('relative w-[54px] shrink-0 border-r border-line pr-2 text-right', (done || skipped) && 'opacity-55')}>
-            <span className="num block text-[19px] leading-6 font-bold">{hm(o.start)}</span>
+          <span className={cx('relative w-[58px] shrink-0 border-r border-line pr-2.5 text-right', (done || skipped) && 'opacity-55')}>
+            <span className="num block text-[19px] leading-6 font-bold tracking-tight">{hm(o.start)}</span>
             <span className="num block text-[13px] text-ink-3">{hm(o.end)}</span>
           </span>
           <span className="min-w-0 flex-1">
