@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { AlertCircle, CalendarDays, HardDrive, Plus, Repeat, Settings, Users } from 'lucide-react'
 import { lazy, Suspense, useEffect, type ReactNode } from 'react'
+import { ConfirmHost } from './components/confirm'
 import { Button, cx, Skeleton, Toaster } from './components/ui'
 import { Editor } from './features/editor/Editor'
 import { openEditor, useEditor } from './features/editor/state'
@@ -125,6 +126,7 @@ function Shell() {
       </div>
 
       <Editor />
+      <ConfirmHost />
     </div>
   )
 }

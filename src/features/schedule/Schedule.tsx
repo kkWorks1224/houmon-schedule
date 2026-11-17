@@ -6,7 +6,8 @@ import type { Client, Occ, Staff } from '../../../shared/types'
 import { Button, cx, IconButton, KindTag, Segmented, Skeleton, StaffMark, staffTone } from '../../components/ui'
 import { clientById, loadWeek, setDate, staffById, useApp } from '../../store/app'
 import { openEditor, useEditor } from '../editor/state'
-import { OccCard, OccChip, RepeatBadge, StatusBadge, useClientName } from './occ'
+import { moveOcc } from './move'
+import { weekDrag, OccCard, OccChip, RepeatBadge, StatusBadge, useClientName } from './occ'
 
 export const DAY_START = 8 * 60 + 30
 export const DAY_END = 18 * 60
@@ -433,7 +434,7 @@ function DayList({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
           </section>
         )
       })}
-      <p className="pb-2 text-center text-[12px] text-ink-3">予定を右にフリックで完了、左でお休み</p>
+      <p className="pb-2 text-center text-[12px] leading-relaxed text-ink-3">右にフリックで完了、左でお休み<br />長押ししてから上下になぞると時刻を変更</p>
     </div>
   )
 }
@@ -465,12 +466,18 @@ function GapRow({ date, staff, start, end }: { date: string; staff: Staff; start
 
 // ---------------- PC：3人を並べた時間軸 ----------------
 const HOUR = 72
+type Drag = { key: string; mode: 'move' | 'resize'; start: number; duration: number; staffId: string; moved: boolean }
+/** ドラッグ直後のクリック（編集画面・新規追加）を無視するための時刻 */
+let dragEndedAt = 0
+const justDragged = () => performance.now() - dragEndedAt < 350
+
 function DayGrid({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staff[] }) {
   const name = useClientName()
   const startH = Math.min(8, ...occs.map((o) => Math.floor(o.start / 60)))
   const endH = Math.max(19, ...occs.map((o) => Math.ceil(o.end / 60)))
   const hours = Array.from({ length: endH - startH }, (_, i) => startH + i)
   const [ghost, setGhost] = useState<{ staffId: string; min: number } | null>(null)
+  const [drag, setDrag] = useState<Drag | null>(null)
   const today = todayJST()
   const nowMin = nowMinutesJST()
   const toMin = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -478,16 +485,60 @@ function DayGrid({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
     const m = startH * 60 + Math.floor(((e.clientY - r.top) / HOUR) * 4) * 15
     return Math.max(0, Math.min(m, 23 * 60 + 45))
   }
+
+  /** 予定をつかんで動かす（上下＝時刻、左右＝担当者）／下端をつかんで所要時間を変える。15分単位 */
+  const begin = (e: React.PointerEvent, o: Occ, mode: Drag['mode']) => {
+    if (e.button !== 0 || e.pointerType === 'touch') return
+    e.stopPropagation()
+    e.preventDefault()
+    const x0 = e.clientX
+    const y0 = e.clientY
+    let cur: Drag = { key: o.key, mode, start: o.start, duration: o.duration, staffId: o.staffId, moved: false }
+    setGhost(null)
+    const onMove = (ev: PointerEvent) => {
+      const dy = ev.clientY - y0
+      if (!cur.moved && Math.hypot(ev.clientX - x0, dy) < 4) return
+      const steps = Math.round((dy / HOUR) * 4) * 15
+      const next = { ...cur, moved: true }
+      if (mode === 'move') {
+        next.start = Math.max(startH * 60, Math.min(o.start + steps, endH * 60 - o.duration))
+        const col = document.elementsFromPoint(ev.clientX, ev.clientY).find((x) => (x as HTMLElement).dataset?.col) as HTMLElement | undefined
+        if (col?.dataset.col) next.staffId = col.dataset.col
+      } else {
+        next.duration = Math.max(15, Math.min(o.duration + steps, endH * 60 - o.start))
+      }
+      if (next.start !== cur.start || next.staffId !== cur.staffId || next.duration !== cur.duration || !cur.moved) {
+        cur = next
+        setDrag(next)
+      }
+    }
+    const end = (commit: boolean) => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('keydown', onKey)
+      if (cur.moved) dragEndedAt = performance.now()
+      setDrag(null)
+      if (commit && cur.moved) void moveOcc(o, mode === 'move' ? { start: cur.start, staffId: cur.staffId } : { duration: cur.duration })
+    }
+    const onUp = () => end(true)
+    const onKey = (ev: KeyboardEvent) => ev.key === 'Escape' && (ev.preventDefault(), end(false))
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('keydown', onKey)
+  }
+
+  const shown = drag ? occs.map((o) => (o.key === drag.key ? { ...o, start: drag.start, duration: drag.duration, end: drag.start + drag.duration, staffId: drag.staffId } : o)) : occs
+
   return (
     <div className="px-8 pt-4">
-      <div className="surface overflow-hidden">
+      <div className={cx('surface overflow-hidden', drag && 'select-none')}>
         <div className="grid border-b border-line" style={{ gridTemplateColumns: `56px repeat(${staff.length}, minmax(0, 1fr))` }}>
           <div />
           {staff.map((s) => (
             <div key={s.id} className="flex items-center gap-2 border-l border-line px-3 py-2.5 text-[15px] font-bold">
               <StaffMark staff={s} size={24} />
               {s.name}
-              <span className="num text-[13px] font-semibold text-ink-3">{occs.filter((o) => o.staffId === s.id && o.status !== 'skipped').length}件</span>
+              <span className="num text-[13px] font-semibold text-ink-3">{shown.filter((o) => o.staffId === s.id && o.status !== 'skipped').length}件</span>
             </div>
           ))}
         </div>
@@ -500,19 +551,21 @@ function DayGrid({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
             ))}
           </div>
           {staff.map((s) => {
-            const mine = occs.filter((o) => o.staffId === s.id)
+            const mine = shown.filter((o) => o.staffId === s.id)
             const lanes = layoutLanes(mine)
+            const target = drag?.moved && drag.mode === 'move' && drag.staffId === s.id
             return (
               <div
                 key={s.id}
-                className="relative cursor-copy border-l border-line"
+                data-col={s.id}
+                className={cx('relative border-l border-line transition-colors', drag ? (target ? 'bg-accent-soft/40' : '') : 'cursor-copy')}
                 style={{ height: hours.length * HOUR, backgroundImage: `repeating-linear-gradient(to bottom, var(--color-line) 0 1px, transparent 1px ${HOUR / 2}px)` }}
-                onMouseMove={(e) => setGhost({ staffId: s.id, min: toMin(e) })}
+                onMouseMove={(e) => !drag && setGhost({ staffId: s.id, min: toMin(e) })}
                 onMouseLeave={() => setGhost(null)}
-                onClick={(e) => openEditor({ mode: 'new', date, staffId: s.id, start: toMin(e) })}
+                onClick={(e) => !justDragged() && openEditor({ mode: 'new', date, staffId: s.id, start: toMin(e) })}
                 role="presentation"
               >
-                {ghost?.staffId === s.id && (
+                {ghost?.staffId === s.id && !drag && (
                   <div className="pointer-events-none absolute inset-x-1 flex items-center gap-1 rounded-lg bg-accent-soft/80 px-2 text-[12.5px] font-semibold text-accent-ink ring-1 ring-accent/30" style={{ top: ((ghost.min - startH * 60) / 60) * HOUR, height: HOUR / 4 }}>
                     <Plus size={13} aria-hidden />
                     <span className="num">{hm(ghost.min)}</span>に追加
@@ -523,26 +576,34 @@ function DayGrid({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
                   const lane = lanes.get(o.key)!
                   const tone = staffTone(staffById(o.staffId))
                   const h = Math.max(26, (o.duration / 60) * HOUR - 3)
+                  const active = drag?.key === o.key && drag.moved
                   return (
                     <motion.button
                       key={o.key}
-                      layout
+                      layout={!active}
                       initial={{ opacity: 0, scale: 0.97 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      animate={{ opacity: 1, scale: active ? 1.02 : 1 }}
                       transition={{ type: 'spring', duration: 0.35, bounce: 0.1 }}
                       type="button"
+                      onPointerDown={(e) => begin(e, o, 'move')}
                       onClick={(e) => {
                         e.stopPropagation()
-                        openEditor({ mode: 'edit', occ: o })
+                        if (!justDragged()) openEditor({ mode: 'edit', occ: o })
                       }}
                       onMouseMove={(e) => e.stopPropagation()}
                       onMouseEnter={() => setGhost(null)}
-                      className={cx('press absolute cursor-pointer overflow-hidden rounded-[10px] border-l-[4px] px-2 py-1 text-left shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-line', tone.soft, o.status === 'skipped' && 'skipped-stripes bg-[#f6f6f7] opacity-70', o.status === 'done' && 'opacity-75')}
+                      className={cx(
+                        'press group/occ absolute overflow-hidden rounded-[10px] border-l-[4px] px-2 py-1 text-left ring-1',
+                        active ? 'z-20 cursor-grabbing shadow-lift ring-accent/50' : 'cursor-grab shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-line',
+                        tone.soft,
+                        o.status === 'skipped' && 'skipped-stripes bg-[#f6f6f7] opacity-70',
+                        o.status === 'done' && !active && 'opacity-75',
+                      )}
                       style={{ top: ((o.start - startH * 60) / 60) * HOUR + 1, height: h, left: `calc(${(lane.i / lane.n) * 100}% + 3px)`, width: `calc(${100 / lane.n}% - 6px)`, borderLeftColor: `var(--color-st${((staffById(o.staffId)?.sort ?? 1) - 1) % 3 + 1})` }}
-                      title={`${hm(o.start)}–${hm(o.end)} ${name(o.clientId)}`}
+                      title={`${hm(o.start)}–${hm(o.end)} ${name(o.clientId)}（ドラッグで時刻・担当者、下端で所要時間を変更）`}
                     >
                       <span className="flex min-w-0 items-center gap-1.5">
-                        <span className="num shrink-0 text-[12.5px] font-bold">{hm(o.start)}–{hm(o.end)}</span>
+                        <span className={cx('num shrink-0 text-[12.5px] font-bold', active && 'text-accent-ink')}>{hm(o.start)}–{hm(o.end)}</span>
                         <span className={cx('min-w-0 truncate text-[13.5px] font-bold', o.status === 'skipped' && 'line-through')}>{name(o.clientId)}</span>
                         <KindTag kind={o.kind} />
                       </span>
@@ -553,6 +614,13 @@ function DayGrid({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
                           {o.memo && <span className="truncate text-[12px] text-ink-2">{o.memo}</span>}
                         </span>
                       )}
+                      <span
+                        aria-hidden
+                        onPointerDown={(e) => begin(e, o, 'resize')}
+                        className="absolute inset-x-0 bottom-0 flex h-2.5 cursor-ns-resize items-end justify-center pb-[2px] opacity-0 transition-opacity group-hover/occ:opacity-100"
+                      >
+                        <span className="h-[3px] w-6 rounded-full bg-ink/25" />
+                      </span>
                     </motion.button>
                   )
                 })}
@@ -561,7 +629,7 @@ function DayGrid({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
           })}
         </div>
       </div>
-      <p className="mt-2 text-[12.5px] text-ink-3">空いている時間を押すと、その時刻・担当者で予定を追加します（15分単位）。</p>
+      <p className="mt-2 text-[12.5px] text-ink-3">空いている時間を押すと、その時刻・担当者で予定を追加します（15分単位）。予定はドラッグで時刻・担当者を、下端のドラッグで所要時間を変えられます（Esc で取り消し）。</p>
     </div>
   )
 }
@@ -645,13 +713,14 @@ function WeekView({ monday, staff }: { monday: string; staff: Staff[] }) {
             ))}
           </div>
         </div>
-        <p className="mt-2 text-[12.5px] text-ink-3">枠の空いているところを押すと、その日・担当者で予定を追加します。</p>
+        <p className="mt-2 text-[12.5px] text-ink-3">枠の空いているところを押すと、その日・担当者で予定を追加します。予定をドラッグすると別の日・担当者へ移せます（時刻はそのまま）。</p>
       </div>
     </>
   )
 }
 
 function WeekRow({ s, days, occs }: { s: Staff; days: string[]; occs: Occ[] }) {
+  const [over, setOver] = useState<string | null>(null)
   return (
     <>
       <div className="flex items-start gap-2 border-b border-line px-3 py-3 text-[14px] font-bold">
@@ -659,11 +728,30 @@ function WeekRow({ s, days, occs }: { s: Staff; days: string[]; occs: Occ[] }) {
         {s.name}
       </div>
       {days.map((d) => {
-        const list = occs.filter((o) => o.date === d && o.staffId === s.id)
+        const list = occs.filter((o) => o.date === d && o.staffId === s.id).sort((a, b) => a.start - b.start)
         return (
-          <div key={d} role="presentation" onClick={() => openEditor({ mode: 'new', date: d, staffId: s.id })} className="group flex min-h-[120px] cursor-copy flex-col gap-1 border-b border-l border-line p-1.5">
+          <div
+            key={d}
+            role="presentation"
+            onClick={() => openEditor({ mode: 'new', date: d, staffId: s.id })}
+            onDragOver={(e) => {
+              if (!weekDrag.occ) return
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+              if (over !== d) setOver(d)
+            }}
+            onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setOver(null)}
+            onDrop={(e) => {
+              e.preventDefault()
+              setOver(null)
+              const o = weekDrag.occ
+              weekDrag.occ = null
+              if (o) void moveOcc(o, { date: d, staffId: s.id })
+            }}
+            className={cx('group flex min-h-[120px] cursor-copy flex-col gap-1 border-b border-l border-line p-1.5 transition-colors', over === d && 'bg-accent-soft/60 ring-2 ring-accent/40 ring-inset')}
+          >
             {list.map((o) => (
-              <OccChip key={o.key} o={o} />
+              <OccChip key={o.key} o={o} movable />
             ))}
             <span className="mt-auto flex h-7 items-center justify-center rounded-lg text-[12.5px] text-ink-3 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden>
               <Plus size={14} />

@@ -240,7 +240,7 @@ export function Toaster() {
 
 // ---------- フリック（右＝主な操作、左＝もう一方。ボタンでも同じ操作ができる） ----------
 export type FlickAction = { label: string; icon: ReactNode; color: string; run: () => void }
-const haptic = (ms = 8) => {
+export const haptic = (ms = 8) => {
   try {
     navigator.vibrate?.(ms)
   } catch {
