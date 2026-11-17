@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "houmon-schedule",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "preview_urls": false,
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/auth/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "houmon-schedule",
+      "database_id": "ec8ffc62-7f4d-40a5-b75f-a3b688feaadf",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "ai": { "binding": "AI", "remote": true },
+  "ratelimits": [
+    { "name": "AI_LIMITER", "namespace_id": "5001", "simple": { "limit": 12, "period": 60 } },
+    { "name": "API_LIMITER", "namespace_id": "5002", "simple": { "limit": 300, "period": 60 } }
+  ],
+  "vars": {
+    "GOOGLE_CLIENT_ID": "674715201485-v8pugkcd7a0sc6tflormd7p9mss7j8u7.apps.googleusercontent.com",
+    "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+  }
+}
