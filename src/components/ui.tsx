@@ -12,13 +12,13 @@ export const finePointer = () => typeof matchMedia === 'function' && matchMedia(
 // ---------- ボタン ----------
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'tinted'
 const V: Record<Variant, string> = {
-  primary: 'bg-accent text-white hover:bg-accent-ink disabled:bg-ink-3/40 shadow-[0_1px_2px_rgb(10_108_224/0.3)]',
-  secondary: 'bg-surface text-ink ring-1 ring-line-strong hover:bg-sunken disabled:text-ink-3',
-  tinted: 'bg-accent-soft text-accent-ink hover:bg-[#d8e7fc] disabled:opacity-50',
+  primary: 'bg-accent text-white hover:bg-accent-ink disabled:bg-ink-3/40',
+  secondary: 'bg-fill text-accent-ink hover:bg-sunken disabled:text-ink-3',
+  tinted: 'bg-accent-soft text-accent-ink hover:bg-[#d6e9ff] disabled:opacity-50',
   ghost: 'bg-transparent text-accent hover:bg-accent-soft/70 disabled:text-ink-3',
-  danger: 'bg-bad-soft text-bad hover:bg-[#fadcd8] disabled:opacity-50',
+  danger: 'bg-bad-soft text-bad hover:bg-[#ffdcda] disabled:opacity-50',
 }
-const S = { sm: 'h-9 px-3 text-[14px] gap-1.5 rounded-full', md: 'h-11 px-4 text-[15px] gap-2 rounded-full', lg: 'h-[52px] px-6 text-[16px] gap-2 rounded-full' }
+const S = { sm: 'h-9 px-3.5 text-[15px] gap-1.5 rounded-full', md: 'h-11 px-4 text-[17px] gap-2 rounded-full', lg: 'h-[52px] px-6 text-[17px] gap-2 rounded-full' }
 
 export function Button({ variant = 'primary', size = 'md', icon, children, className, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: keyof typeof S; icon?: ReactNode }) {
   return (
@@ -31,7 +31,7 @@ export function Button({ variant = 'primary', size = 'md', icon, children, class
 
 export function IconButton({ label, children, className, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
   return (
-    <button type="button" aria-label={label} title={label} {...rest} className={cx('press inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink-2 hover:bg-black/[0.05] disabled:opacity-40', className)}>
+    <button type="button" aria-label={label} title={label} {...rest} className={cx('press inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-accent hover:bg-fill disabled:opacity-40', className)}>
       {children}
     </button>
   )
@@ -78,7 +78,7 @@ export function KindTag({ kind, full }: { kind: Kind; full?: boolean }) {
 export function Segmented<T extends string | number>({ value, options, onChange, label, size = 'md', className }: { value: T; options: { value: T; label: ReactNode; aria?: string }[]; onChange: (v: T) => void; label: string; size?: 'sm' | 'md'; className?: string }) {
   const id = useId()
   return (
-    <div role="radiogroup" aria-label={label} className={cx('relative flex rounded-full bg-black/[0.055] p-[3px]', className)}>
+    <div role="radiogroup" aria-label={label} className={cx('relative flex rounded-full bg-fill p-[2px]', className)}>
       {options.map((o) => {
         const on = o.value === value
         return (
@@ -98,9 +98,9 @@ export function Segmented<T extends string | number>({ value, options, onChange,
               ;(e.currentTarget.parentElement?.querySelectorAll('button')[options.indexOf(n)] as HTMLElement | undefined)?.focus()
             }}
             tabIndex={on ? 0 : -1}
-            className={cx('relative z-10 flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full font-semibold whitespace-nowrap transition-colors', size === 'sm' ? 'h-8 px-3 text-[13.5px]' : 'h-10 px-3 text-[15px]', on ? 'text-ink' : 'text-ink-2 hover:text-ink')}
+            className={cx('relative z-10 flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full font-semibold whitespace-nowrap transition-colors', size === 'sm' ? 'h-8 px-3 text-[13px]' : 'h-9 px-3 text-[15px]', on ? 'text-ink' : 'text-ink hover:text-ink')}
           >
-            {on && <motion.span layoutId={`seg-${id}`} className="absolute inset-0 -z-10 rounded-full bg-white shadow-[0_1px_3px_rgb(15_23_42/0.14),0_0_0_0.5px_rgb(15_23_42/0.06)]" transition={{ type: 'spring', duration: 0.34, bounce: 0.15 }} />}
+            {on && <motion.span layoutId={`seg-${id}`} className="absolute inset-0 -z-10 rounded-full bg-white shadow-[0_3px_8px_rgb(0_0_0/0.12),0_3px_1px_rgb(0_0_0/0.04),0_0_0_0.5px_rgb(0_0_0/0.04)]" transition={{ type: 'spring', duration: 0.34, bounce: 0.15 }} />}
             {o.label}
           </button>
         )
@@ -154,11 +154,11 @@ export function Sheet({ open, onClose, label, children, header, footer, wide }: 
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center lg:items-center lg:p-6" role="dialog" aria-modal="true" aria-label={label}>
-          <motion.div className="absolute inset-0 bg-[#0f172a]/25" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.18 } }} transition={{ duration: 0.22 }} onClick={onClose} />
+          <motion.div className="absolute inset-0 bg-black/25" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.18 } }} transition={{ duration: 0.22 }} onClick={onClose} />
           <motion.div
             ref={panel}
             tabIndex={-1}
-            className={cx('relative flex max-h-[94dvh] outline-none w-full flex-col overflow-hidden rounded-t-[28px] bg-white/95 shadow-lift ring-1 ring-black/5 backdrop-blur-xl lg:max-h-[88dvh] lg:rounded-[28px]', wide ? 'lg:max-w-3xl' : 'lg:max-w-[560px]')}
+            className={cx('relative flex max-h-[94dvh] outline-none w-full flex-col overflow-hidden rounded-t-[34px] bg-canvas shadow-lift lg:max-h-[88dvh] lg:rounded-[30px]', wide ? 'lg:max-w-3xl' : 'lg:max-w-[560px]')}
             initial={reduce ? { opacity: 0 } : { y: '100%' }}
             animate={reduce ? { opacity: 1 } : { y: 0 }}
             exit={reduce ? { opacity: 0 } : { y: '100%', transition: { duration: 0.24, ease: [0.32, 0.72, 0, 1] } }}
@@ -172,17 +172,17 @@ export function Sheet({ open, onClose, label, children, header, footer, wide }: 
           >
             <div className="touch-none" onPointerDown={(e) => !reduce && controls.start(e)}>
               <div className="flex cursor-grab justify-center pt-2 pb-0.5 lg:hidden" aria-hidden>
-                <span className="h-[5px] w-9 rounded-full bg-ink/15" />
+                <span className="h-[5px] w-9 rounded-full bg-[#c7c7cc]" />
               </div>
               <div className="flex items-start justify-between gap-2 px-5 pt-1 pb-2 lg:pt-4">
                 <div className="min-w-0 flex-1">{header}</div>
-                <IconButton label="閉じる（Esc）" onClick={onClose} className="-mt-1 -mr-2 bg-black/[0.05]">
-                  <X size={19} />
+                <IconButton label="閉じる（Esc）" onClick={onClose} className="glass -mt-1 -mr-2 h-10 w-10 text-ink-2">
+                  <X size={19} strokeWidth={2.4} />
                 </IconButton>
               </div>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5">{children}</div>
-            {footer && <div className="border-t border-line bg-white/80 px-5 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]">{footer}</div>}
+            {footer && <div className="glass-flat border-t border-line px-5 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]">{footer}</div>}
           </motion.div>
         </div>
       )}
@@ -220,7 +220,7 @@ export function Toaster() {
             <span className="leading-snug">{t.text}</span>
             {t.action ? (
               <button
-                className="press ml-1 shrink-0 cursor-pointer rounded-full bg-accent-soft px-3 py-1.5 text-[13.5px] font-semibold text-accent-ink"
+                className="press ml-1 shrink-0 cursor-pointer rounded-full bg-fill px-3 py-1.5 text-[14px] font-semibold text-accent"
                 onClick={() => {
                   t.action!.run()
                   useToast.setState((s) => ({ items: s.items.filter((i) => i.id !== t.id) }))
@@ -284,7 +284,7 @@ export function Flick({ right, left, children, className }: { right?: FlickActio
   return (
     <div
       ref={ref}
-      className={cx('relative overflow-hidden rounded-[18px]', className)}
+      className={cx('relative overflow-hidden', className)}
       style={{ touchAction: 'pan-y' }}
       onPointerDown={() => (dragged.current = false)}
       onClickCapture={(e) => {
@@ -322,7 +322,7 @@ export function Flick({ right, left, children, className }: { right?: FlickActio
 export function Field({ label, error, hint, children, htmlFor, className }: { label: string; error?: string; hint?: ReactNode; children: ReactNode; htmlFor?: string; className?: string }) {
   return (
     <div className={className}>
-      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-ink-2">
+      <label htmlFor={htmlFor} className="mb-1.5 block px-1 text-[13px] text-ink-3">
         {label}
       </label>
       {children}
@@ -339,4 +339,4 @@ export function Field({ label, error, hint, children, htmlFor, className }: { la
     </div>
   )
 }
-export const inputCls = (err?: string) => cx('h-12 w-full rounded-[14px] bg-sunken px-3.5 text-[16px] text-ink outline-none ring-1 transition-shadow placeholder:text-ink-3 focus:bg-white focus:ring-2 focus:ring-accent', err ? 'ring-bad/70' : 'ring-transparent')
+export const inputCls = (err?: string) => cx('h-12 w-full rounded-[12px] bg-surface px-4 text-[17px] text-ink outline-none ring-1 transition-shadow placeholder:text-[#c4c4c6] focus:ring-2 focus:ring-accent', err ? 'ring-bad/70' : 'ring-transparent')

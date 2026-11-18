@@ -93,64 +93,56 @@ export function Schedule() {
     <div>
       <input ref={dateRef} type="date" aria-label="日付を選ぶ" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className="pointer-events-none fixed top-0 left-0 h-px w-px opacity-0" tabIndex={-1} />
       {/* ツールバー（ガラス）：スクロールしても上に残る */}
-      <header className="glass-flat sticky top-0 z-30 border-b border-line px-4 pt-[calc(env(safe-area-inset-top)+6px)] pb-2 lg:px-8 lg:pt-5 lg:pb-3">
-        {/* スマホ：日付を大きく、操作は右にまとめる（前後の移動は下の日付帯をスワイプ） */}
+      <header className="glass-flat sticky top-0 z-30 border-b-[0.5px] border-line-strong px-4 pt-[env(safe-area-inset-top)] pb-2.5 lg:px-8 lg:pt-5 lg:pb-3">
+        {/* スマホ：iOS の大見出し。上の行に操作、下に日付を大きく（前後の移動は日付帯をスワイプ） */}
         <div className="lg:hidden">
           {searchOpen || query ? (
-            <div className="flex h-12 items-center gap-2">
+            <div className="flex h-11 items-center gap-2">
               <SearchBox inputRef={searchRef} autoFocus />
-              <button type="button" className="press h-10 shrink-0 cursor-pointer px-1 text-[15px] font-semibold text-accent" onClick={() => (useApp.setState({ query: '' }), setSearchOpen(false))}>
-                閉じる
+              <button type="button" className="press h-10 shrink-0 cursor-pointer px-1 text-[17px] text-accent" onClick={() => (useApp.setState({ query: '' }), setSearchOpen(false))}>
+                キャンセル
               </button>
             </div>
           ) : (
-            <div className="flex h-12 items-center gap-1">
-              <h1 className="min-w-0 shrink">
-              <button type="button" onClick={openPicker} className="press flex min-w-0 cursor-pointer items-baseline gap-1.5 rounded-xl pr-1 text-left" aria-label={`${view === 'day' ? fmtDate(date) : title}。押すと日付を選べます`}>
-                {view === 'day' ? (
-                  <>
-                    <span className="num text-[28px] leading-none font-bold tracking-tight whitespace-nowrap">
-                      {Number(date.slice(5, 7))}/{Number(date.slice(8))}
-                    </span>
-                    <span className={cx('text-[16px] font-bold whitespace-nowrap', weekday(date) === 0 ? 'text-bad' : weekday(date) === 6 ? 'text-accent' : 'text-ink-2')}>{WD[weekday(date)]}曜</span>
-                  </>
-                ) : (
-                  <span className="num truncate text-[24px] leading-none font-bold tracking-tight">{title}</span>
-                )}
-                <ChevronDown size={18} className="shrink-0 self-center text-ink-3" aria-hidden />
-              </button>
-              </h1>
-              <AnimatePresence initial={false} mode="popLayout">
-                {isToday ? (
-                  view === 'day' && (
-                    <motion.span key="t" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-[12px] font-bold text-white">
-                      今日
-                    </motion.span>
-                  )
-                ) : (
-                  <motion.button key="b" type="button" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} onClick={goToday} className="press flex h-8 shrink-0 cursor-pointer items-center rounded-full bg-accent-soft px-2 text-[13px] font-bold text-accent-ink" aria-label="今日へ戻る">
-                    {date > today ? <ChevronLeft size={15} aria-hidden /> : null}
-                    今日
-                    {date < today ? <ChevronRight size={15} aria-hidden /> : null}
-                  </motion.button>
-                )}
-              </AnimatePresence>
-              <div className="ml-auto flex shrink-0 items-center gap-1">
-                <IconButton label="利用者名で検索" onClick={() => setSearchOpen(true)} className="h-10 w-9">
-                  <Search size={20} />
-                </IconButton>
-                {viewEl('w-[80px] shrink-0')}
+            <>
+              <div className="flex h-11 items-center gap-2">
+                <button type="button" onClick={goToday} disabled={isToday} className="press -ml-1 flex h-10 shrink-0 cursor-pointer items-center rounded-full px-1 text-[17px] text-accent disabled:cursor-default disabled:text-ink-3/60" aria-label="今日へ戻る">
+                  {!isToday && date > today && <ChevronLeft size={22} strokeWidth={2.4} className="-ml-1" aria-hidden />}
+                  今日
+                  {!isToday && date < today && <ChevronRight size={22} strokeWidth={2.4} aria-hidden />}
+                </button>
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                  <button type="button" aria-label="利用者名で検索" onClick={() => setSearchOpen(true)} className="glass press flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-ink">
+                    <Search size={18} strokeWidth={2.4} />
+                  </button>
+                  {viewEl('w-[84px] shrink-0')}
+                </div>
               </div>
-            </div>
+              <h1>
+                <button type="button" onClick={openPicker} className="press flex min-w-0 cursor-pointer items-baseline gap-2 text-left" aria-label={`${view === 'day' ? fmtDate(date) : title}。押すと日付を選べます`}>
+                  {view === 'day' ? (
+                    <>
+                      <span className="large-title num whitespace-nowrap">
+                        {Number(date.slice(5, 7))}月{Number(date.slice(8))}日
+                      </span>
+                      <span className={cx('text-[20px] font-semibold whitespace-nowrap', weekday(date) === 0 ? 'text-bad' : weekday(date) === 6 ? 'text-accent' : 'text-ink-3')}>{WD[weekday(date)]}曜日</span>
+                    </>
+                  ) : (
+                    <span className="large-title num truncate">{title}</span>
+                  )}
+                  <ChevronDown size={20} strokeWidth={2.6} className="shrink-0 self-center text-accent" aria-hidden />
+                </button>
+              </h1>
+            </>
           )}
           {!query && <DateStrip date={date} today={today} onPick={(d) => { dir.current = d > date ? 1 : -1; setDate(d) }} />}
-          <div className="mt-1.5">{staffFilterEl}</div>
+          <div className="mt-2">{staffFilterEl}</div>
         </div>
 
         {/* PC */}
         <div className="hidden lg:block">
           <div className="flex items-center gap-2">
-            <h1 className="flex min-w-0 flex-1 items-baseline gap-2 truncate text-[26px] leading-tight font-bold tracking-tight">
+            <h1 className="flex min-w-0 flex-1 items-baseline gap-2 truncate text-[30px] leading-tight font-bold">
               <span className="truncate">{title}</span>
               {view === 'day' && date === today && <span className="rounded-full bg-accent px-2 py-0.5 text-[12px] font-bold text-white">今日</span>}
             </h1>
@@ -218,7 +210,7 @@ export function Schedule() {
 function SearchBox({ inputRef, autoFocus }: { inputRef: React.RefObject<HTMLInputElement | null>; autoFocus?: boolean }) {
   const query = useApp((s) => s.query)
   return (
-    <label className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-black/[0.055] lg:h-8 lg:w-72 lg:flex-none">
+    <label className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-fill lg:h-8 lg:w-72 lg:flex-none">
       <Search size={16} className="pointer-events-none absolute left-3 text-ink-3" aria-hidden />
       <input
         ref={inputRef}
@@ -227,9 +219,9 @@ function SearchBox({ inputRef, autoFocus }: { inputRef: React.RefObject<HTMLInpu
         value={query}
         onChange={(e) => useApp.setState({ query: e.target.value })}
         onKeyDown={(e) => e.key === 'Escape' && (useApp.setState({ query: '' }), e.currentTarget.blur())}
-        placeholder="利用者名で検索（/）"
+        placeholder="検索"
         aria-label="利用者名で検索"
-        className="h-full w-full rounded-full bg-transparent pr-8 pl-9 text-[16px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent lg:text-[14px]"
+        className="h-full w-full rounded-full bg-transparent pr-8 pl-9 text-[17px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent lg:text-[14px]"
       />
       {query && (
         <button type="button" aria-label="検索を消す" className="absolute right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-ink-3" onClick={() => useApp.setState({ query: '' })}>
@@ -254,17 +246,20 @@ function DateStrip({ date, today, onPick }: { date: string; today: string; onPic
     if (Math.abs(i.offset.x) > 60 || Math.abs(i.velocity.x) > 500) onPick(addDays(date, i.offset.x < 0 ? 7 : -7))
   }
   return (
-    <motion.div className="-mx-1 pt-1" drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.18} dragMomentum={false} onDragEnd={onEnd} style={{ touchAction: 'pan-y' }}>
-      <div className="grid grid-cols-7 gap-1" role="group" aria-label="日付">
+    <motion.div className="-mx-1 pt-2" drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.18} dragMomentum={false} onDragEnd={onEnd} style={{ touchAction: 'pan-y' }}>
+      <div className="grid grid-cols-7" role="group" aria-label="日付">
         {[...eachDay(monday, addDays(monday, 6))].map((d) => {
           const on = d === date
+          const isT = d === today
           const wd = weekday(d)
           return (
-            <button key={d} type="button" onClick={() => onPick(d)} aria-pressed={on} aria-label={`${fmtDate(d)} ${counts[d] ?? 0}件`} className={cx('press relative flex h-[54px] cursor-pointer flex-col items-center justify-center rounded-2xl', on ? 'text-white' : 'text-ink')}>
-              {on && <motion.span layoutId="strip-on" className="absolute inset-0 rounded-2xl bg-accent shadow-[0_4px_14px_rgb(10_108_224/0.35)]" transition={{ type: 'spring', duration: 0.38, bounce: 0.18 }} />}
-              <span className={cx('relative text-[11.5px] font-semibold', !on && (wd === 0 ? 'text-bad' : wd === 6 ? 'text-accent' : 'text-ink-3'))}>{WD[wd]}</span>
-              <span className={cx('num relative text-[18px] leading-6 font-bold', !on && d === today && 'text-accent')}>{Number(d.slice(8))}</span>
-              <span className={cx('relative mt-0.5 h-1.5 w-1.5 rounded-full', counts[d] ? (on ? 'bg-white' : 'bg-ink-3/50') : 'bg-transparent')} />
+            <button key={d} type="button" onClick={() => onPick(d)} aria-pressed={on} aria-label={`${fmtDate(d)} ${counts[d] ?? 0}件`} className="flex cursor-pointer flex-col items-center gap-0.5 py-0.5">
+              <span className={cx('text-[11px] font-semibold', wd === 0 ? 'text-bad' : wd === 6 ? 'text-accent' : 'text-ink-3')}>{WD[wd]}</span>
+              <span className={cx('num relative flex h-9 w-9 items-center justify-center text-[19px]', on ? 'font-semibold text-white' : isT ? 'font-semibold text-accent' : 'text-ink')}>
+                {on && <motion.span layoutId="strip-on" className={cx('absolute inset-0 rounded-full', isT ? 'bg-accent' : 'bg-ink')} transition={{ type: 'spring', duration: 0.36, bounce: 0.16 }} />}
+                <span className="relative">{Number(d.slice(8))}</span>
+              </span>
+              <span className={cx('h-[5px] w-[5px] rounded-full', counts[d] ? 'bg-[#aeaeb2]' : 'bg-transparent')} />
             </button>
           )
         })}
@@ -316,11 +311,11 @@ function DaySummary({ date, occs, staff }: { date: string; occs: Occ[]; staff: S
   const c = 2 * Math.PI * r
   const p = done / list.length
   return (
-    <div className="mx-4 mt-3 flex items-center gap-3.5 rounded-[20px] bg-white/80 p-3 pr-2 shadow-[var(--shadow-card)] ring-1 ring-line">
+    <div className="group-list mx-4 mt-4 flex items-center gap-3.5 p-3 pr-2.5">
       <div className="relative h-[52px] w-[52px] shrink-0" role="img" aria-label={`${list.length}件中${done}件完了`}>
         <svg viewBox="0 0 48 48" className="h-full w-full -rotate-90">
-          <circle cx="24" cy="24" r={r} fill="none" stroke="var(--color-sunken)" strokeWidth="5" />
-          <motion.circle cx="24" cy="24" r={r} fill="none" stroke="var(--color-ok)" strokeWidth="5" strokeLinecap="round" strokeDasharray={c} initial={false} animate={{ strokeDashoffset: c * (1 - p) }} transition={{ type: 'spring', duration: 0.7, bounce: 0.1 }} />
+          <circle cx="24" cy="24" r={r} fill="none" stroke="#e5e5ea" strokeWidth="5" />
+          <motion.circle cx="24" cy="24" r={r} fill="none" stroke="#34c759" strokeWidth="5" strokeLinecap="round" strokeDasharray={c} initial={false} animate={{ strokeDashoffset: c * (1 - p) }} transition={{ type: 'spring', duration: 0.7, bounce: 0.1 }} />
         </svg>
         <span className="num absolute inset-0 flex items-center justify-center text-[14px] font-bold">
           {done}
@@ -330,10 +325,10 @@ function DaySummary({ date, occs, staff }: { date: string; occs: Occ[]; staff: S
       {next ? (
         <button type="button" onClick={() => openEditor({ mode: 'edit', occ: next })} className="press flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-xl py-1 text-left">
           <span className="min-w-0 flex-1">
-            <span className="block text-[12px] font-semibold text-ink-3">{isToday ? '次の訪問' : 'この日の最初の訪問'}</span>
+            <span className="block text-[13px] text-ink-3">{isToday ? '次の訪問' : 'この日の最初の訪問'}</span>
             <span className="flex min-w-0 items-center gap-1.5">
-              <span className="num text-[17px] font-bold">{hm(next.start)}</span>
-              <span className="truncate text-[16px] font-bold">{name(next.clientId)}さん</span>
+              <span className="num text-[17px] font-semibold">{hm(next.start)}</span>
+              <span className="truncate text-[17px] font-semibold">{name(next.clientId)}さん</span>
             </span>
           </span>
           <StaffMark staff={staffById(next.staffId)} size={26} />
@@ -370,16 +365,16 @@ function QuickAdd({ date, occs }: { date: string; occs: Occ[] }) {
     openEditor({ mode: 'new', date, clientId: c.id, staffId, start: suggestStart(occs, staffId, c, date) })
   }
   return (
-    <div className="px-4 pt-3 lg:px-8">
-      <p className="mb-1.5 text-[12.5px] font-semibold text-ink-3" id="quick-label">
+    <div className="pt-5 lg:px-8 lg:pt-3">
+      <p className="mb-1.5 px-4 text-[13px] text-ink-3 lg:px-0" id="quick-label">
         すぐ追加
       </p>
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0" role="group" aria-labelledby="quick-label">
+      <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-1 lg:flex-wrap lg:px-0" role="group" aria-labelledby="quick-label">
         {list.map((c) => (
-          <button key={c.id} type="button" onClick={() => pick(c)} className="press hover-lift flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white pr-3 pl-1 text-[14px] font-semibold shadow-[0_1px_2px_rgb(15_23_42/0.05)] ring-1 ring-line">
+          <button key={c.id} type="button" onClick={() => pick(c)} className="press hover-lift flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white pr-3 pl-1 text-[15px] lg:shadow-[0_0_0_0.5px_rgb(60_60_67/0.18)]">
             <StaffMark staff={staffById(filter === 'all' ? c.defaultStaffId : filter)} size={27} />
             {c.name.split(/\s/)[0]}さん
-            <Plus size={15} className="text-ink-3" aria-hidden />
+            <Plus size={15} strokeWidth={2.6} className="text-accent" aria-hidden />
           </button>
         ))}
       </div>
@@ -410,7 +405,7 @@ export function suggestStart(occs: Occ[], staffId: string, c: Client, date: stri
 function DayList({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staff[] }) {
   const all = staff.length > 1
   return (
-    <div className="flex flex-col gap-5 px-4 pt-4">
+    <div className="flex flex-col gap-6 px-4 pt-5">
       {staff.map((s) => {
         const mine = occs.filter((o) => o.staffId === s.id)
         const gaps = freeGaps(occs, s.id)
@@ -420,24 +415,22 @@ function DayList({ date, occs, staff }: { date: string; occs: Occ[]; staff: Staf
         return (
           <section key={s.id} aria-label={`${s.name}の予定`}>
             {all && (
-              <h2 className="mb-2 flex items-center gap-2 px-1 text-[15px] font-bold">
-                <span className={cx('flex items-center gap-1.5 rounded-full py-1 pr-3 pl-1', staffTone(s).soft, staffTone(s).fg)}>
-                  <StaffMark staff={s} size={24} />
-                  {s.name}
-                </span>
-                <span className="num text-[13px] font-semibold text-ink-3">{active}件</span>
+              <h2 className="mb-1.5 flex items-center gap-2 px-4 text-[13px] text-ink-3">
+                <StaffMark staff={s} size={20} />
+                <span className={cx('text-[15px] font-semibold', staffTone(s).fg)}>{s.name}</span>
+                <span className="num ml-auto">{active}件</span>
               </h2>
             )}
-            <ul className="flex flex-col gap-2">
+            <ul className="group-list flex flex-col">
               <AnimatePresence initial={false}>
                 {rows.map((r, i) => (r.t === 'occ' ? <OccCard key={r.o.key} o={r.o} index={i} /> : <GapRow key={`g${r.start}`} date={date} staff={s} start={r.start} end={r.end} />))}
               </AnimatePresence>
             </ul>
-            {!mine.length && <p className="mt-1 px-1 text-[13px] text-ink-3">予定はありません</p>}
+            {!mine.length && <p className="mt-1.5 px-4 text-[13px] text-ink-3">予定はありません</p>}
           </section>
         )
       })}
-      <p className="pb-2 text-center text-[12px] leading-relaxed text-ink-3">右にフリックで完了、左でお休み<br />長押ししてから上下になぞると時刻を変更</p>
+      <p className="px-4 pb-2 text-center text-[13px] leading-relaxed text-ink-3">右にフリックで完了、左でお休み<br />長押ししてから上下になぞると時刻を変更</p>
     </div>
   )
 }
@@ -446,19 +439,20 @@ const fmtLen = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}時間${m % 60 ? 
 
 function GapRow({ date, staff, start, end }: { date: string; staff: Staff; start: number; end: number }) {
   return (
-    <motion.li layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="list-none">
+    <motion.li layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative list-none">
+      <span className="row-sep left-[84px]" aria-hidden />
       <button
         type="button"
         onClick={() => openEditor({ mode: 'new', date, start, staffId: staff.id })}
-        className="press hover-lift flex min-h-[44px] w-full cursor-pointer items-center gap-3 rounded-[14px] border-[1.5px] border-dashed border-line-strong pr-2 pl-3 text-left text-[13.5px] text-ink-3"
+        className="row-press flex min-h-[44px] w-full cursor-pointer items-center gap-3 bg-[#fbfbfd] pr-4 pl-5 text-left text-[15px] text-ink-3"
         aria-label={`${staff.name} ${hm(start)}から${hm(end)}が空いています。ここに予定を追加`}
       >
-        <span className="num w-[62px] shrink-0 pr-2.5 text-right font-semibold">{hm(start)}</span>
+        <span className="num w-[52px] shrink-0 text-right">{hm(start)}</span>
         <span className="flex-1">
           空き <span className="num">〜{hm(end)}</span>
-          <span className="num ml-1.5 text-[12px] opacity-80">{fmtLen(end - start)}</span>
+          <span className="num ml-1.5 text-[13px]">{fmtLen(end - start)}</span>
         </span>
-        <span className="flex h-7 items-center gap-0.5 rounded-full bg-accent-soft pr-2.5 pl-1.5 text-[12.5px] font-bold text-accent">
+        <span className="flex items-center gap-0.5 text-[15px] text-accent">
           <Plus size={15} strokeWidth={2.6} />
           追加
         </span>

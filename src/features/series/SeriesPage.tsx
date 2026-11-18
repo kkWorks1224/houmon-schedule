@@ -13,9 +13,11 @@ import { openEditor } from '../editor/state'
 
 export function PageHeader({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
-    <header className="glass-flat sticky top-0 z-30 flex items-center gap-3 border-b border-line px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-3 lg:px-8 lg:pt-5">
-      <h1 className="flex-1 text-[22px] font-bold tracking-tight lg:text-[26px]">{title}</h1>
-      {action}
+    <header className="glass-flat sticky top-0 z-30 border-b-[0.5px] border-line-strong px-4 pt-[env(safe-area-inset-top)] pb-2 lg:flex lg:items-center lg:gap-3 lg:px-8 lg:pt-5 lg:pb-3">
+      {/* スマホは iOS の大見出し：操作は上の行の右、見出しはその下に大きく */}
+      <div className="flex h-11 items-center justify-end lg:hidden">{action}</div>
+      <h1 className="large-title flex-1 lg:text-[30px] lg:leading-tight">{title}</h1>
+      <div className="hidden lg:block">{action}</div>
     </header>
   )
 }

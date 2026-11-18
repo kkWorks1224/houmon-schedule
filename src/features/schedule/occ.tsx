@@ -34,7 +34,7 @@ export async function changeStatus(o: Occ, status: Occ['status']) {
 export function StatusBadge({ o }: { o: Occ }) {
   if (o.status === 'scheduled') return null
   return (
-    <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-bold', o.status === 'done' ? 'bg-ok-soft text-ok' : 'bg-black/[0.06] text-ink-2')}>
+    <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-bold', o.status === 'done' ? 'bg-ok-soft text-ok' : 'bg-fill text-ink-2')}>
       {o.status === 'done' ? <CheckCircle2 size={13} aria-hidden /> : <Moon size={13} aria-hidden />}
       {STATUS_LABEL[o.status]}
     </span>
@@ -136,38 +136,39 @@ export function OccCard({ o, showStaff, index = 0 }: { o: Occ; showStaff?: boole
         className={cx('relative [-webkit-touch-callout:none] select-none', lift && 'z-30')}
         style={lift ? { transform: `translateY(${lift.dy}px) scale(1.03)`, transition: 'transform 60ms linear' } : { transition: 'transform 240ms cubic-bezier(0.23, 1, 0.32, 1)' }}
       >
+      <span className="row-sep left-[84px]" aria-hidden />
       {lift && (
         <span className="num pointer-events-none absolute -top-3 right-3 z-10 rounded-full bg-accent px-2.5 py-1 text-[13px] font-bold text-white shadow-lift">
           {lift.delta === 0 ? '上下になぞって時刻を変更' : `${lift.delta > 0 ? '+' : '−'}${Math.abs(lift.delta)}分`}
         </span>
       )}
       <Flick
-        className={cx(lift && 'shadow-lift ring-2 ring-accent')}
-        right={done ? { label: '予定に戻す', icon: <RotateCcw size={20} />, color: '#6e737c', run: () => void changeStatus(o, 'scheduled').catch(() => {}) } : { label: '完了', icon: <Check size={22} strokeWidth={3} />, color: '#1f8a52', run: () => void changeStatus(o, 'done').catch(() => {}) }}
-        left={skipped ? { label: '予定に戻す', icon: <RotateCcw size={20} />, color: '#6e737c', run: () => void changeStatus(o, 'scheduled').catch(() => {}) } : { label: o.seriesId ? 'この回お休み' : 'お休み', icon: <Moon size={20} />, color: '#5b6270', run: () => void changeStatus(o, 'skipped').catch(() => {}) }}
+        className={cx(lift && 'rounded-[16px] shadow-lift ring-2 ring-accent')}
+        right={done ? { label: '予定に戻す', icon: <RotateCcw size={20} />, color: '#8e8e93', run: () => void changeStatus(o, 'scheduled').catch(() => {}) } : { label: '完了', icon: <Check size={22} strokeWidth={3} />, color: '#34c759', run: () => void changeStatus(o, 'done').catch(() => {}) }}
+        left={skipped ? { label: '予定に戻す', icon: <RotateCcw size={20} />, color: '#8e8e93', run: () => void changeStatus(o, 'scheduled').catch(() => {}) } : { label: o.seriesId ? 'この回お休み' : 'お休み', icon: <Moon size={20} />, color: '#5e5ce6', run: () => void changeStatus(o, 'skipped').catch(() => {}) }}
       >
         <button
           type="button"
           onClick={() => openEditor({ mode: 'edit', occ: o })}
-          className={cx('press relative flex w-full cursor-pointer items-stretch gap-3 overflow-hidden rounded-[18px] bg-white p-3 pr-3.5 pl-4 text-left shadow-[0_1px_2px_rgb(15_23_42/0.05)] ring-1 ring-line before:absolute before:inset-y-2.5 before:left-[5px] before:w-[4px] before:rounded-full', skipped ? 'skipped-stripes bg-[#fafafa] before:bg-line-strong' : staffTone(staff).bar)}
+          className={cx('row-press relative flex w-full cursor-pointer items-stretch gap-3 bg-white py-3 pr-4 pl-5 text-left before:absolute before:inset-y-3 before:left-2 before:w-[4px] before:rounded-full', skipped ? 'skipped-stripes bg-[#fafafa] before:bg-line-strong' : staffTone(staff).bar)}
           aria-label={`${hm(o.start)}から${hm(o.end)} ${name(o.clientId)}さん ${staff?.name ?? ''} ${STATUS_LABEL[o.status]}。押すと編集`}
         >
-          <span className={cx('relative w-[58px] shrink-0 border-r border-line pr-2.5 text-right', (done || skipped) && 'opacity-55')}>
-            <span className={cx('num block text-[19px] leading-6 font-bold tracking-tight', !!lift?.delta && 'text-accent')}>{hm(start)}</span>
+          <span className={cx('relative w-[52px] shrink-0 text-right', (done || skipped) && 'opacity-55')}>
+            <span className={cx('num block text-[17px] leading-6 font-semibold', !!lift?.delta && 'text-accent')}>{hm(start)}</span>
             <span className={cx('num block text-[13px] text-ink-3', !!lift?.delta && 'text-accent')}>{hm(start + o.duration)}</span>
           </span>
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
-              <span className={cx('truncate text-[16.5px] font-bold tracking-tight', skipped && 'text-ink-3 line-through decoration-ink-3/60', done && 'text-ink-2')}>{name(o.clientId)}</span>
+              <span className={cx('truncate text-[17px] leading-6 font-semibold', skipped && 'text-ink-3 line-through decoration-ink-3/60', done && 'text-ink-2')}>{name(o.clientId)}</span>
               <KindTag kind={o.kind} />
             </span>
             <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               {showStaff && <StaffTag staff={staff} />}
-              <span className="num text-[12.5px] text-ink-3">{o.duration}分</span>
+              <span className="num text-[13px] text-ink-3">{o.duration}分</span>
               <RepeatBadge o={o} />
               <StatusBadge o={o} />
             </span>
-            {o.memo && <span className="mt-1 block truncate text-[13px] text-ink-2">{o.memo}</span>}
+            {o.memo && <span className="mt-0.5 block truncate text-[15px] text-ink-3">{o.memo}</span>}
           </span>
           {!skipped && !done && clientById(o.clientId)?.address?.trim() && <span className="w-[62px] shrink-0" aria-hidden />}
         </button>
@@ -199,7 +200,7 @@ export function OccChip({ o, withStaff, movable }: { o: Occ; withStaff?: boolean
         e.stopPropagation()
         openEditor({ mode: 'edit', occ: o })
       }}
-      className={cx('press hover-lift flex w-full items-center gap-1.5 rounded-[10px] bg-white px-2 py-1.5 text-left text-[13px] ring-1 ring-line', movable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer', o.status === 'skipped' && 'skipped-stripes text-ink-3', o.status === 'done' && 'text-ink-2')}
+      className={cx('press hover-lift flex w-full items-center gap-1.5 rounded-[8px] bg-white px-2 py-1.5 text-left text-[13px] shadow-[0_0_0_0.5px_rgb(60_60_67/0.18)]', movable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer', o.status === 'skipped' && 'skipped-stripes text-ink-3', o.status === 'done' && 'text-ink-2')}
       title={`${hm(o.start)}–${hm(o.end)} ${name(o.clientId)} ${staff?.name ?? ''} ${STATUS_LABEL[o.status]}`}
     >
       {withStaff && <StaffMark staff={staff} size={18} />}

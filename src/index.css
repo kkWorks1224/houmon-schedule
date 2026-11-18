@@ -2,41 +2,45 @@
 
 /* デザイントークン：白基調。ガラス素材はナビゲーション層（ツールバー・タブバー・シート）だけに使う（Apple HIG の Liquid Glass の考え方） */
 @theme {
+  /* iOS の標準フォント（SF Pro ＋ ヒラギノ）。数字も SF Pro の等幅数字で揃える */
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
-  --font-num: ui-rounded, 'SF Pro Rounded', -apple-system, 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif;
+  --font-num: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Hiragino Sans', sans-serif;
 
-  --color-canvas: #f5f6f8;
+  /* iOS のシステムカラー（systemGroupedBackground / label / separator など）。文字色は読みやすさを優先した濃いめの値 */
+  --color-canvas: #f2f2f7;
   --color-surface: #ffffff;
-  --color-sunken: #eef0f3;
-  --color-ink: #1d1d1f;
-  --color-ink-2: #4b4f57;
-  --color-ink-3: #6e737c;
-  --color-line: rgb(29 29 31 / 0.08);
-  --color-line-strong: rgb(29 29 31 / 0.16);
+  --color-sunken: #ebebf0;
+  --color-fill: rgb(118 118 128 / 0.12);
+  --color-pressed: #e5e5ea;
+  --color-ink: #000000;
+  --color-ink-2: #3c3c43;
+  --color-ink-3: #6c6c70;
+  --color-line: rgb(60 60 67 / 0.16);
+  --color-line-strong: rgb(60 60 67 / 0.29);
 
-  --color-accent: #0a6ce0;
-  --color-accent-ink: #0656b5;
-  --color-accent-soft: #e6f0fd;
-  --color-ok: #1f7a4a;
-  --color-ok-soft: #e3f3ea;
-  --color-warn: #9a5800;
-  --color-warn-soft: #fdf1dd;
-  --color-bad: #c0271d;
-  --color-bad-soft: #fdecea;
+  --color-accent: #007aff;
+  --color-accent-ink: #0062cc;
+  --color-accent-soft: #e5f1ff;
+  --color-ok: #248a3d;
+  --color-ok-soft: #e4f6e8;
+  --color-warn: #b25000;
+  --color-warn-soft: #fff2e0;
+  --color-bad: #d70015;
+  --color-bad-soft: #ffeceb;
 
-  /* 担当者の色（色だけに頼らず、必ず名前か1文字の印と一緒に出す） */
-  --color-st1: #2f63d6;
-  --color-st1-soft: #e8eefc;
-  --color-st2: #b8367f;
-  --color-st2-soft: #f9e8f2;
-  --color-st3: #1d7f57;
-  --color-st3-soft: #e3f3ec;
+  /* 担当者の色（iOS の indigo / pink / teal。色だけに頼らず、必ず名前か1文字の印と一緒に出す） */
+  --color-st1: #5856d6;
+  --color-st1-soft: #ececfb;
+  --color-st2: #d30f45;
+  --color-st2-soft: #fde7ed;
+  --color-st3: #00829a;
+  --color-st3-soft: #e0f3f6;
 
-  --radius-card: 16px;
+  --radius-card: 22px;
   --radius-ctl: 12px;
 
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 1px 1px rgb(15 23 42 / 0.03);
-  --shadow-lift: 0 12px 40px rgb(15 23 42 / 0.14), 0 2px 6px rgb(15 23 42 / 0.06);
+  --shadow-card: none;
+  --shadow-lift: 0 14px 40px rgb(0 0 0 / 0.16), 0 2px 6px rgb(0 0 0 / 0.06);
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -59,18 +63,6 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-/* 白地にごく淡い担当者3色の光を敷き、ガラスの層に奥行きを出す */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(70vmax 38vmax at 0% -6%, rgb(47 99 214 / 0.11), transparent 62%),
-    radial-gradient(60vmax 34vmax at 105% 4%, rgb(184 54 127 / 0.075), transparent 60%),
-    radial-gradient(70vmax 40vmax at 40% 108%, rgb(29 127 87 / 0.07), transparent 62%);
-}
 @media (pointer: fine) {
   html,
   body {
@@ -83,23 +75,28 @@ body::before {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
+/* iOS の大見出し（Large Title） */
+.large-title {
+  font-size: 34px;
+  line-height: 41px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
 
 /* Liquid Glass：半透明＋ぼかし＋縁の光（上端のハイライトと内側の影で厚みを出す） */
 .glass {
   position: relative;
-  background: rgb(255 255 255 / 0.66);
-  backdrop-filter: blur(22px) saturate(190%);
-  -webkit-backdrop-filter: blur(22px) saturate(190%);
+  background: rgb(255 255 255 / 0.62);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.95),
-    inset 0 0 0 1px rgb(255 255 255 / 0.55),
-    inset 0 -1px 1px rgb(15 23 42 / 0.04),
-    0 0 0 0.5px rgb(15 23 42 / 0.08),
-    0 10px 30px rgb(15 23 42 / 0.1),
-    0 1px 3px rgb(15 23 42 / 0.06);
+    inset 0 1px 0.5px rgb(255 255 255 / 0.9),
+    inset 0 -0.5px 0.5px rgb(255 255 255 / 0.5),
+    0 0 0 0.5px rgb(0 0 0 / 0.06),
+    0 8px 28px rgb(0 0 0 / 0.1);
 }
 .glass-flat {
-  background: rgb(255 255 255 / 0.74);
+  background: rgb(242 242 247 / 0.8);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
@@ -121,7 +118,32 @@ body::before {
 .surface {
   background: var(--color-surface);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card), 0 0 0 1px var(--color-line);
+}
+/* iOS の inset grouped リスト：白い角丸の箱の中に行を並べ、行の間は左を空けた細い線 */
+.group-list {
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+.row-sep {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  height: 0.5px;
+  background: var(--color-line-strong);
+  pointer-events: none;
+}
+li:first-child > * > .row-sep,
+li:first-child > .row-sep {
+  display: none;
+}
+/* 行を押したときは iOS と同じく灰色に光らせる */
+.row-press {
+  transition: background-color 160ms ease;
+}
+.row-press:active {
+  background-color: var(--color-pressed);
 }
 
 /* 押下フィードバック */
@@ -165,7 +187,7 @@ summary {
 
 /* スケルトン */
 .skeleton {
-  background: linear-gradient(90deg, #eceef1 0%, #f6f7f9 40%, #eceef1 80%);
+  background: linear-gradient(90deg, #e3e3e8 0%, #ededf1 40%, #e3e3e8 80%);
   background-size: 200% 100%;
   animation: shimmer 1.2s linear infinite;
   border-radius: 10px;
@@ -178,7 +200,7 @@ summary {
 
 /* お休みの回 */
 .skipped-stripes {
-  background-image: repeating-linear-gradient(135deg, rgb(29 29 31 / 0.045) 0 5px, transparent 5px 10px);
+  background-image: repeating-linear-gradient(135deg, rgb(60 60 67 / 0.05) 0 5px, transparent 5px 10px);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -200,4 +222,9 @@ summary {
 input[type='search']::-webkit-search-cancel-button {
   -webkit-appearance: none;
   appearance: none;
+}
+
+/* 白い箱の中の入力欄は iOS と同じ灰色の塗りにして、箱と見分けられるようにする */
+.surface :is(input:not([type='checkbox'], [type='radio']), select, textarea) {
+  background-color: var(--color-fill);
 }

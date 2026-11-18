@@ -28,19 +28,20 @@ export function ClientsPage() {
       <div className="px-4 pt-3 lg:px-8">
         <label className="relative mb-3 flex max-w-md items-center">
           <Search size={17} className="pointer-events-none absolute left-3.5 text-ink-3" aria-hidden />
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="名前・ふりがなで検索" aria-label="利用者を検索" className={cx(inputCls(), 'pl-10')} />
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="名前・ふりがなで検索" aria-label="利用者を検索" className="h-10 w-full rounded-full bg-fill pr-3 pl-10 text-[17px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent" />
         </label>
-        <p className="mb-3 text-[13px] text-ink-3">標準の訪問時間・内容・担当者は、予定を追加するときに自動で入力されます。架空のデータです。</p>
-        <ul className="grid gap-2 lg:grid-cols-2">
+        <p className="mb-4 px-1 text-[13px] text-ink-3">標準の訪問時間・内容・担当者は、予定を追加するときに自動で入力されます。架空のデータです。</p>
+        <ul className="group-list max-w-3xl">
           {list.map((c) => (
-            <li key={c.id}>
-              <div className={cx('surface flex items-center gap-2 p-1.5', !c.active && 'opacity-55')}>
+            <li key={c.id} className="relative">
+              <span className="row-sep left-4" aria-hidden />
+              <div className={cx('flex items-center gap-2 py-1 pr-3 pl-1.5', !c.active && 'opacity-55')}>
                 <button type="button" onClick={() => setEdit(c)} className="press hover-lift flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[12px] px-2 py-2 text-left">
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[16px] font-bold">
+                    <span className="block truncate text-[17px] font-semibold">
                       {c.name}さん{!c.active && <span className="ml-2 text-[12px] font-semibold text-ink-3">休止中</span>}
                     </span>
-                    <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[12.5px] text-ink-2">
+                    <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[13px] text-ink-3">
                       <span className="num">
                         {c.defaultStart != null ? `${hm(c.defaultStart)}〜` : ''}
                         {c.defaultDuration}分

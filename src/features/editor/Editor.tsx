@@ -331,7 +331,7 @@ function EditorBody({ init }: { init: EditorInit }) {
               {init.mode === 'new' && <AiBox onParsed={applyParsed} />}
               {/* 利用者 */}
               <Field label="利用者" error={errors.clientId}>
-                <button type="button" data-field="clientId" onClick={() => !series && setStep('client')} disabled={!!series} className={cx('press flex min-h-[56px] w-full cursor-pointer items-center gap-3 rounded-[14px] bg-sunken px-3.5 text-left disabled:cursor-default', errors.clientId && 'ring-1 ring-bad/70')} aria-label={client ? `利用者：${client.name}（押して変更）` : '利用者を選ぶ'}>
+                <button type="button" data-field="clientId" onClick={() => !series && setStep('client')} disabled={!!series} className={cx('press flex min-h-[56px] w-full cursor-pointer items-center gap-3 rounded-[12px] bg-surface px-4 text-left disabled:cursor-default', errors.clientId && 'ring-1 ring-bad/70')} aria-label={client ? `利用者：${client.name}（押して変更）` : '利用者を選ぶ'}>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[17px] font-bold">{client ? `${client.name}さん` : '選んでください'}</span>
                     {client?.memo && <span className="block truncate text-[13px] text-ink-2">{client.memo}</span>}
@@ -367,7 +367,7 @@ function EditorBody({ init }: { init: EditorInit }) {
               <Field label="所要時間" htmlFor="f-dur" error={errors.duration}>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {DURATIONS.map((d) => (
-                    <button key={d} type="button" onClick={() => patch({ duration: d })} aria-pressed={draft.duration === d} className={cx('press num h-11 min-w-[54px] cursor-pointer rounded-full px-3 text-[15px] font-bold', draft.duration === d ? 'bg-ink text-white' : 'bg-sunken text-ink')}>
+                    <button key={d} type="button" onClick={() => patch({ duration: d })} aria-pressed={draft.duration === d} className={cx('press num h-11 min-w-[54px] cursor-pointer rounded-full px-3 text-[15px] font-bold', draft.duration === d ? 'bg-accent text-white' : 'bg-surface text-ink')}>
                       {d}
                     </button>
                   ))}
@@ -504,7 +504,7 @@ export const seriesText = (s: Pick<Series, 'weekdays' | 'interval'>) => `${s.int
 
 function Nudge({ children, label, onClick }: { children: ReactNode; label: string; onClick: () => void }) {
   return (
-    <button type="button" aria-label={label} onClick={onClick} className="press num h-12 w-12 shrink-0 cursor-pointer rounded-[14px] bg-sunken text-[13px] font-bold text-ink-2 hover:bg-[#e4e7eb]">
+    <button type="button" aria-label={label} onClick={onClick} className="press num h-12 w-12 shrink-0 cursor-pointer rounded-[12px] bg-surface text-[13px] font-bold text-accent hover:bg-pressed">
       {children}
     </button>
   )
@@ -708,7 +708,7 @@ function AiBox({ onParsed, compact }: { onParsed: (p: Partial<Record<string, unk
 function RepeatPanel({ on, setOn, repeat, setRepeat, errors, isEdit, preview, occDate }: { on: boolean; setOn?: (v: boolean) => void; repeat: RepeatDraft; setRepeat: (r: RepeatDraft) => void; errors: Record<string, string>; isEdit: boolean; preview: { next: string[]; checkedUntil: string; count: number } | null; occDate: string | null }) {
   const toggleWd = (w: number) => setRepeat({ ...repeat, weekdays: repeat.weekdays.includes(w) ? repeat.weekdays.filter((x) => x !== w) : [...repeat.weekdays, w] })
   return (
-    <div className="rounded-[18px] bg-sunken/70 p-3.5 ring-1 ring-line">
+    <div className="surface p-4">
       {setOn ? (
         <label className="flex cursor-pointer items-center gap-3">
           <Repeat size={19} className="text-ink-2" aria-hidden />
@@ -731,7 +731,7 @@ function RepeatPanel({ on, setOn, repeat, setRepeat, errors, isEdit, preview, oc
                   {WEEK_ORDER.map((w) => {
                     const sel = repeat.weekdays.includes(w)
                     return (
-                      <button key={w} type="button" aria-pressed={sel} onClick={() => toggleWd(w)} className={cx('press h-11 cursor-pointer rounded-[12px] text-[15px] font-bold', sel ? 'bg-accent text-white shadow-[0_2px_8px_rgb(10_108_224/0.3)]' : 'bg-white text-ink ring-1 ring-line')}>
+                      <button key={w} type="button" aria-pressed={sel} onClick={() => toggleWd(w)} className={cx('press h-11 cursor-pointer rounded-[12px] text-[15px] font-bold', sel ? 'bg-accent text-white' : 'bg-fill text-ink')}>
                         {WD[w]}
                         <span className="sr-only">曜日</span>
                       </button>
@@ -764,7 +764,7 @@ function RepeatPanel({ on, setOn, repeat, setRepeat, errors, isEdit, preview, oc
                   <p className="mb-1.5 text-[13px] font-semibold text-ink-2">直近の予定（保存前の確認）</p>
                   <div className="flex flex-wrap gap-1.5">
                     {preview.next.map((d) => (
-                      <motion.span key={d} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="num rounded-full bg-white px-2.5 py-1 text-[13px] font-semibold ring-1 ring-line">
+                      <motion.span key={d} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="num rounded-full bg-white px-2.5 py-1 text-[13px] font-semibold">
                         {fmtShort(d)}
                       </motion.span>
                     ))}
@@ -828,7 +828,7 @@ function ConflictBox({ conflicts, checking, series, until }: { conflicts: Confli
 // ---------- この回だけ／この回以降 ----------
 function ScopeChooser({ occDate, repeatChanged, busy, onOne, onFollowing }: { occDate: string; repeatChanged: boolean; busy: boolean; onOne: () => void; onFollowing: () => void }) {
   const opt = (title: string, desc: string, onClick: () => void, disabled = false, auto = false) => (
-    <button type="button" onClick={onClick} disabled={disabled || busy} data-autofocus={auto || undefined} className="press flex min-h-[72px] w-full cursor-pointer items-center gap-3 rounded-[18px] bg-white px-4 py-3 text-left ring-1 ring-line-strong hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-45">
+    <button type="button" onClick={onClick} disabled={disabled || busy} data-autofocus={auto || undefined} className="press flex min-h-[72px] w-full cursor-pointer items-center gap-3 rounded-[22px] bg-white px-4 py-3 text-left hover:bg-pressed disabled:cursor-not-allowed disabled:opacity-45">
       <span className="min-w-0 flex-1">
         <span className="block text-[16.5px] font-bold">{title}</span>
         <span className="block text-[13px] text-ink-2">{desc}</span>
@@ -856,14 +856,14 @@ function FollowingReview({ plan, keep, setKeep }: { plan: FollowingPlan; keep: b
         <p className="mb-1.5 text-[13px] font-semibold text-ink-2">変更後の直近の予定</p>
         <div className="flex flex-wrap gap-1.5">
           {plan.next.map((d) => (
-            <span key={d} className="num rounded-full bg-white px-2.5 py-1 text-[13px] font-semibold ring-1 ring-line">
+            <span key={d} className="num rounded-full bg-white px-2.5 py-1 text-[13px] font-semibold">
               {fmtShort(d)}
             </span>
           ))}
         </div>
       </div>
       {plan.exceptions.length > 0 && (
-        <div className="rounded-[16px] bg-sunken p-3.5">
+        <div className="surface p-4">
           <p className="mb-2 text-[14.5px] font-bold">個別に変更済みの回が{plan.exceptions.length}件あります</p>
           <Segmented size="sm" label="個別の変更の扱い" value={keep ? 'keep' : 'drop'} onChange={(v) => setKeep(v === 'keep')} options={[{ value: 'keep', label: '個別の変更を残す' }, { value: 'drop', label: '新しい設定にそろえる' }]} />
           <ul className="mt-2.5 flex flex-col gap-1 text-[13.5px]">

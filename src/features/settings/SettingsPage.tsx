@@ -12,7 +12,7 @@ export function SettingsPage() {
   return (
     <div>
       <PageHeader title="設定" />
-      <div className="flex max-w-2xl flex-col gap-4 px-4 pt-4 lg:px-8">
+      <div className="flex max-w-2xl flex-col gap-6 px-4 pt-5 lg:px-8">
         <Account />
         <StaffNames />
         {!isDemo && role === 'admin' && <Members />}
@@ -26,9 +26,9 @@ export function SettingsPage() {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="surface p-4" aria-label={title}>
-      <h2 className="mb-3 text-[16px] font-bold">{title}</h2>
-      {children}
+    <section aria-label={title}>
+      <h2 className="mb-1.5 px-4 text-[13px] text-ink-3">{title}</h2>
+      <div className="surface p-4">{children}</div>
     </section>
   )
 }
